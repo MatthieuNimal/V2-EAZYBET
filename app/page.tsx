@@ -1,11 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { TapToEarnModal } from '@/components/tap-to-earn-modal';
-import { HeaderCoins } from '@/components/header-coins';
-import { BottomNav } from '@/components/bottom-nav';
 import { TabsMatchs } from '@/components/tabs-matchs';
-import { FloatingButton } from '@/components/floating-button';
 import { LeagueSection } from '@/components/league-section';
 import { BetSlip } from '@/components/bet-slip';
 import { BetTicket } from '@/components/bet-ticket';
@@ -16,7 +12,6 @@ import { startMatchSimulation, stopMatchSimulation } from '@/lib/match-simulator
 import { Ticket, Trophy } from 'lucide-react';
 
 export default function Home() {
-  const [modalOpen, setModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'upcoming' | 'played' | 'finished'>('upcoming');
   const [mounted, setMounted] = useState(false);
   const matchStatusStore = useMatchStatusStore();
@@ -40,17 +35,11 @@ export default function Home() {
 
   if (!mounted) {
     return (
-      <>
-        <HeaderCoins />
-        <div className="min-h-screen pt-20 pb-24">
-          <div className="max-w-2xl mx-auto">
-            <div className="px-4">
-              <TabsMatchs activeTab={activeTab} onTabChange={setActiveTab} />
-            </div>
-          </div>
+      <div className="max-w-2xl mx-auto">
+        <div className="px-4">
+          <TabsMatchs activeTab={activeTab} onTabChange={setActiveTab} />
         </div>
-        <BottomNav />
-      </>
+      </div>
     );
   }
 
@@ -191,22 +180,14 @@ export default function Home() {
   };
 
   return (
-    <>
-      <HeaderCoins onCoinsClick={() => setModalOpen(true)} />
-      <div className="min-h-screen pt-20 pb-24">
-        <div className="max-w-2xl mx-auto">
-          <div className="px-4">
-            <TabsMatchs activeTab={activeTab} onTabChange={setActiveTab} />
-          </div>
-
-          {renderContent()}
-        </div>
+    <div className="max-w-2xl mx-auto">
+      <div className="px-4">
+        <TabsMatchs activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
 
-      <FloatingButton onClick={() => setModalOpen(true)} />
+      {renderContent()}
+
       <BetSlip />
-      <BottomNav />
-      <TapToEarnModal open={modalOpen} onOpenChange={setModalOpen} />
-    </>
+    </div>
   );
 }

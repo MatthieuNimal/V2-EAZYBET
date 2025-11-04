@@ -1,7 +1,5 @@
 'use client';
 
-import { HeaderCoins } from '@/components/header-coins';
-import { BottomNav } from '@/components/bottom-nav';
 import { useUserBetsStore, useMatchStatusStore } from '@/lib/store';
 import { User, Settings, Trophy, TrendingUp, Calendar, Award, RotateCcw } from 'lucide-react';
 
@@ -25,10 +23,7 @@ export default function ProfilPage() {
   };
 
   return (
-    <>
-      <HeaderCoins />
-      <div className="min-h-screen pt-20 pb-24">
-        <div className="max-w-2xl mx-auto px-4">
+    <div className="max-w-2xl mx-auto px-4">
           <div className="bg-gradient-to-br from-[#1C2128] to-[#161B22] border border-[#30363D] rounded-2xl p-6 mb-6 card-shadow">
             <div className="flex items-center gap-4 mb-4">
               <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#C1322B] to-[#A02822] flex items-center justify-center">
@@ -131,8 +126,5 @@ export default function ProfilPage() {
             </p>
           </div>
         </div>
-      </div>
-      <BottomNav />
-    </>
   );
 }
