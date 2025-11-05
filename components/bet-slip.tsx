@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useBetStore, useBetSlipUIStore } from '@/lib/store';
 import { useAuth } from '@/lib/auth-context';
-import { placeBet } from '@/lib/api-client';
+import { placeBet, placeCombobet } from '@/lib/api-client';
 import { Coins, X, Gem } from 'lucide-react';
 
 export function BetSlip() {
@@ -35,24 +35,34 @@ export function BetSlip() {
   const isCombo = selections.length > 1;
   const selection = selections[0];
 
-  const totalWin = Math.round(betAmount * selection.odds);
+  const comboTotalOdds = isCombo ? selections.reduce((acc, s) => acc * s.odds, 1) : 0;
+  const singleOdds = isCombo ? 0 : selection.odds;
+  const effectiveOdds = isCombo ? comboTotalOdds : singleOdds;
+
+  const totalWin = Math.round(betAmount * effectiveOdds);
   const profit = totalWin - betAmount;
   const potentialDiamonds = currency === 'tokens' ? Math.round(profit * 0.01) : 0;
 
   const handlePlaceBet = async () => {
     if (!betAmount || betAmount <= 0 || betAmount > availableBalance) return;
-    if (isCombo) {
-      setError('Les paris combinés ne sont pas encore disponibles');
-      return;
-    }
 
     setIsPlacing(true);
     setError('');
 
     try {
-      const choice = selection.betType === 'home' ? 'A' : selection.betType === 'draw' ? 'Draw' : 'B';
+      if (isCombo) {
+        const comboSelections = selections.map(sel => ({
+          matchId: sel.match.id,
+          choice: (sel.betType === 'home' ? 'A' : sel.betType === 'draw' ? 'Draw' : 'B') as 'A' | 'Draw' | 'B',
+          odds: sel.odds
+        }));
 
-      await placeBet(selection.match.id, betAmount, choice, currency);
+        await placeCombobet(comboSelections, betAmount, currency);
+      } else {
+        const choice = selection.betType === 'home' ? 'A' : selection.betType === 'draw' ? 'Draw' : 'B';
+        await placeBet(selection.match.id, betAmount, choice, currency);
+      }
+
       await refreshProfile();
 
       if (typeof window !== 'undefined') {
@@ -143,8 +153,12 @@ export function BetSlip() {
           </div>
 
           {isCombo && (
-            <div className="bg-yellow-500/10 border border-yellow-500/50 rounded-xl p-3 mb-4">
-              <p className="text-yellow-400 text-sm">Les paris combinés ne sont pas encore disponibles</p>
+            <div className="bg-green-500/10 border border-green-500/50 rounded-xl p-3 mb-4">
+              <div className="flex items-center justify-between">
+                <p className="text-green-400 text-sm font-medium">Pari combiné activé</p>
+                <p className="text-green-400 text-xl font-bold">×{comboTotalOdds.toFixed(2)}</p>
+              </div>
+              <p className="text-green-300/70 text-xs mt-1">Toutes les sélections doivent être gagnantes</p>
             </div>
           )}
 
@@ -177,8 +191,7 @@ export function BetSlip() {
             ))}
           </div>
 
-          {!isCombo && (
-            <div className="mb-6">
+          <div className="mb-6">
               <label className="text-white/70 text-sm mb-2 block">Choisir la monnaie</label>
               <div className="grid grid-cols-2 gap-3 mb-4">
                 <button
@@ -239,9 +252,8 @@ export function BetSlip() {
                 Solde disponible : {availableBalance.toFixed(0)} {currency === 'tokens' ? 'jetons' : 'diamants'} (min. 10)
               </p>
             </div>
-          )}
 
-          {betAmount > 0 && !isCombo && (
+          {betAmount > 0 && (
             <>
               {currency === 'tokens' ? (
                 <>
@@ -291,17 +303,15 @@ export function BetSlip() {
           )}
         </div>
 
-        {!isCombo && (
-          <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#1A1F27] via-[#1A1F27] to-transparent">
-            <button
-              onClick={handlePlaceBet}
-              disabled={!betAmount || betAmount <= 0 || betAmount > availableBalance || isPlacing}
-              className="w-full py-4 bg-gradient-to-r from-[#C1322B] to-[#8B1F1A] text-white font-bold text-lg rounded-2xl shadow-xl hover:shadow-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-xl active:scale-[0.98]"
-            >
-              {isPlacing ? 'Placement en cours...' : 'Placer le pari'}
-            </button>
-          </div>
-        )}
+        <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#1A1F27] via-[#1A1F27] to-transparent">
+          <button
+            onClick={handlePlaceBet}
+            disabled={!betAmount || betAmount <= 0 || betAmount > availableBalance || isPlacing}
+            className="w-full py-4 bg-gradient-to-r from-[#C1322B] to-[#8B1F1A] text-white font-bold text-lg rounded-2xl shadow-xl hover:shadow-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-xl active:scale-[0.98]"
+          >
+            {isPlacing ? 'Placement en cours...' : isCombo ? 'Placer le pari combiné' : 'Placer le pari'}
+          </button>
+        </div>
       </div>
     </div>
   );

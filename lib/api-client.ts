@@ -117,6 +117,141 @@ export async function placeBet(matchId: string, amount: number, choice: 'A' | 'D
   return bet;
 }
 
+export async function placeCombobet(
+  selections: Array<{ matchId: string; choice: 'A' | 'Draw' | 'B'; odds: number }>,
+  amount: number,
+  currency: 'tokens' | 'diamonds' = 'tokens'
+) {
+  if (amount < 10) {
+    throw new Error('Mise minimum : 10');
+  }
+
+  if (selections.length < 2) {
+    throw new Error('Un pari combiné nécessite au moins 2 sélections');
+  }
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error('Non authentifié');
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('tokens, diamonds, total_bets')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  if (!profile) {
+    throw new Error('Profil non trouvé');
+  }
+
+  if (currency === 'tokens' && profile.tokens < amount) {
+    throw new Error('Jetons insuffisants');
+  }
+
+  if (currency === 'diamonds' && profile.diamonds < amount) {
+    throw new Error('Diamants insuffisants');
+  }
+
+  const matchIds = selections.map(s => s.matchId);
+  const { data: matches, error: matchesError } = await supabase
+    .from('matches')
+    .select('id, status')
+    .in('id', matchIds);
+
+  if (matchesError || !matches || matches.length !== selections.length) {
+    throw new Error('Un ou plusieurs matchs sont introuvables');
+  }
+
+  const unavailableMatch = matches.find(m => m.status !== 'upcoming');
+  if (unavailableMatch) {
+    throw new Error('Un ou plusieurs matchs ne sont plus disponibles pour les paris');
+  }
+
+  const totalOdds = selections.reduce((acc, sel) => acc * sel.odds, 1);
+  const totalWin = Math.round(amount * totalOdds);
+  const profit = totalWin - amount;
+  const diamondsFromProfit = currency === 'tokens' ? Math.round(profit * 0.01) : 0;
+
+  const updateData: any = {
+    total_bets: profile.total_bets + 1
+  };
+
+  if (currency === 'tokens') {
+    updateData.tokens = profile.tokens - amount;
+  } else {
+    updateData.diamonds = profile.diamonds - amount;
+  }
+
+  await supabase
+    .from('profiles')
+    .update(updateData)
+    .eq('id', user.id);
+
+  const { data: comboBet, error: comboBetError } = await supabase
+    .from('combo_bets')
+    .insert({
+      user_id: user.id,
+      amount,
+      bet_currency: currency,
+      total_odds: totalOdds,
+      potential_win: totalWin,
+      potential_diamonds: diamondsFromProfit,
+    })
+    .select()
+    .single();
+
+  if (comboBetError) {
+    const rollbackData: any = {
+      total_bets: profile.total_bets
+    };
+    if (currency === 'tokens') {
+      rollbackData.tokens = profile.tokens;
+    } else {
+      rollbackData.diamonds = profile.diamonds;
+    }
+    await supabase
+      .from('profiles')
+      .update(rollbackData)
+      .eq('id', user.id);
+    throw new Error('Erreur lors du pari combiné');
+  }
+
+  const selectionsToInsert = selections.map(sel => ({
+    combo_bet_id: comboBet.id,
+    match_id: sel.matchId,
+    choice: sel.choice,
+    odds: sel.odds,
+  }));
+
+  const { error: selectionsError } = await supabase
+    .from('combo_bet_selections')
+    .insert(selectionsToInsert);
+
+  if (selectionsError) {
+    await supabase
+      .from('combo_bets')
+      .delete()
+      .eq('id', comboBet.id);
+
+    const rollbackData: any = {
+      total_bets: profile.total_bets
+    };
+    if (currency === 'tokens') {
+      rollbackData.tokens = profile.tokens;
+    } else {
+      rollbackData.diamonds = profile.diamonds;
+    }
+    await supabase
+      .from('profiles')
+      .update(rollbackData)
+      .eq('id', user.id);
+    throw new Error('Erreur lors de la création des sélections');
+  }
+
+  return comboBet;
+}
+
 export async function getUserBets(status?: 'active' | 'history'): Promise<any[]> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
