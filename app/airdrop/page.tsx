@@ -29,7 +29,7 @@ export default function AirdropPage() {
         <div className="glassmorphism rounded-3xl p-6 mb-6 border-2 border-purple-500/30 bg-gradient-to-br from-purple-500/10 to-pink-500/10">
           <div className="flex items-center gap-3 mb-4">
             <Sparkles className="w-6 h-6 text-purple-400" />
-            <h2 className="text-xl font-bold text-white">Airdrop EasyBet Token</h2>
+            <h2 className="text-xl font-bold text-white">Airdrop EazyBet Token</h2>
           </div>
           <p className="text-white/80 mb-4 leading-relaxed">
             Participez à notre programme d'airdrop et recevez des <span className="font-bold text-purple-400">$EZBT tokens</span> gratuitement!

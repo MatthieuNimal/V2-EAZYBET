@@ -1,8 +1,8 @@
-# EasyBet - Sports Betting PWA
+# EazyBet - Sports Betting PWA
 
 ## Overview
 
-EasyBet is a fictional sports betting Progressive Web Application built with Next.js 13. The application simulates a sports betting platform with a gamified tap-to-earn system, using mock data and local state management. Users can place virtual bets on sports matches using two virtual currencies: coins (💰) and diamonds (💎). The app features a dark, modern UI inspired by betting platforms like Winamax, with a focus on mobile-first design and engaging interactions.
+EazyBet is a fictional sports betting Progressive Web Application built with Next.js 13. The application simulates a sports betting platform with a gamified tap-to-earn system, using mock data and local state management. Users can place virtual bets on sports matches using two virtual currencies: coins (💰) and diamonds (💎). The app features a dark, modern UI inspired by betting platforms like Winamax, with a focus on mobile-first design and engaging interactions.
 
 ## User Preferences
 
@@ -31,7 +31,7 @@ Preferred communication style: Simple, everyday language.
 - Dark theme as default with custom CSS variables
 - Gradient backgrounds and glassmorphism effects
 - Mobile-first responsive design
-- Custom color palette (EasyBet red #C1322B, gold #F5C144, blue #2A84FF)
+- Custom color palette (EazyBet red #C1322B, gold #F5C144, blue #2A84FF)
 
 **Key Design Patterns**:
 - Component composition with separation of concerns

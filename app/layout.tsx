@@ -6,7 +6,7 @@ import { AppLayout } from '@/components/app-layout';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'EasyBet - Pariez et Gagnez',
+  title: 'EazyBet - Pariez et Gagnez',
   description: 'Application de paris sportifs fictifs avec système de jetons',
 };
 

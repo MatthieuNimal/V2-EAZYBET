@@ -24,7 +24,7 @@ export default function AuthPage() {
     <div className="min-h-screen bg-gradient-to-b from-[#8B0000] to-[#000000] flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold text-white mb-2">EasyBet</h1>
+          <h1 className="text-5xl font-bold text-white mb-2">EazyBet</h1>
           <p className="text-white/70 text-sm">Pariez et gagnez facilement</p>
         </div>
 

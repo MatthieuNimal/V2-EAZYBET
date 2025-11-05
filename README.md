@@ -1,4 +1,4 @@
-# EasyBet - Application de Paris Sportifs Fictifs
+# EazyBet - Application de Paris Sportifs Fictifs
 
 Application web PWA de paris sportifs avec système de jetons et tap-to-earn, construite avec Next.js 13.
 
