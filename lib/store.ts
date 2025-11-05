@@ -197,14 +197,18 @@ export const useNavigationStore = create<NavigationState>()(
 
 interface BadgeState {
   hasNewBet: boolean;
+  hasNewResult: boolean;
   setHasNewBet: (value: boolean) => void;
+  setHasNewResult: (value: boolean) => void;
 }
 
 export const useBadgeStore = create<BadgeState>()(
   persist(
     (set) => ({
       hasNewBet: false,
+      hasNewResult: false,
       setHasNewBet: (value) => set({ hasNewBet: value }),
+      setHasNewResult: (value) => set({ hasNewResult: value }),
     }),
     {
       name: 'easybet-badge-storage',

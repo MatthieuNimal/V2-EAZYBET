@@ -1,9 +1,10 @@
-import { useMatchStatusStore, useUserBetsStore, useUserStore, BetType } from './store';
+import { useMatchStatusStore, useUserBetsStore, useUserStore, useBadgeStore, BetType } from './store';
 
 export function simulateMatchResults() {
   const matchStatusStore = useMatchStatusStore.getState();
   const userBetsStore = useUserBetsStore.getState();
   const userStore = useUserStore.getState();
+  const badgeStore = useBadgeStore.getState();
 
   const pendingBets = userBetsStore.bets.filter(bet => bet.status === 'pending');
 
@@ -38,6 +39,8 @@ export function simulateMatchResults() {
       userStore.addDiamonds(randomBet.potentialWin);
     }
   }
+
+  badgeStore.setHasNewResult(true);
 
   console.log(`Bet ${randomBet.id} finished. Status: ${won ? 'WON' : 'LOST'}. Type: ${randomBet.type}.`);
 }

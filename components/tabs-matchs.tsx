@@ -8,11 +8,16 @@ interface TabsMatchsProps {
 }
 
 export function TabsMatchs({ activeTab, onTabChange }: TabsMatchsProps) {
-  const { hasNewBet, setHasNewBet } = useBadgeStore();
+  const { hasNewBet, hasNewResult, setHasNewBet, setHasNewResult } = useBadgeStore();
 
   const handlePlayedClick = () => {
     setHasNewBet(false);
     onTabChange('played');
+  };
+
+  const handleFinishedClick = () => {
+    setHasNewResult(false);
+    onTabChange('finished');
   };
 
   return (
@@ -45,14 +50,19 @@ export function TabsMatchs({ activeTab, onTabChange }: TabsMatchsProps) {
       </button>
 
       <button
-        onClick={() => onTabChange('finished')}
-        className={`flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-all duration-300 ease-in-out ${
+        onClick={handleFinishedClick}
+        className={`relative flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-all duration-300 ease-in-out ${
           activeTab === 'finished'
             ? 'bg-gradient-to-r from-[#C1322B] to-[#A02822] text-white shadow-lg glow-red'
             : 'text-white/60 hover:text-white hover:bg-[#30363D]/30'
         }`}
       >
         Résultats
+        {hasNewResult && (
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+            1
+          </span>
+        )}
       </button>
     </div>
   );

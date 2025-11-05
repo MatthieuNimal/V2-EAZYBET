@@ -117,6 +117,13 @@ Preferred communication style: Simple, everyday language.
 - Methods: `setActiveHomeTab`
 - Persisted to local storage to remember user's last tab selection
 
+**Badge Store** (`useBadgeStore`):
+- Manages notification badges for the "Joués" and "Résultats" tabs
+- Methods: `setHasNewBet`, `setHasNewResult`
+- `hasNewBet`: Shows a red badge on "Joués" when a new bet is placed, cleared when user clicks the tab
+- `hasNewResult`: Shows a red badge on "Résultats" when a bet result is available, cleared when user clicks the tab
+- Persisted to local storage
+
 ### Mock Data Structure
 
 **Match Object**:
