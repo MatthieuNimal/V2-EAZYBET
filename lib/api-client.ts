@@ -145,33 +145,9 @@ export async function earnTokens(taps: number = 1) {
     throw new Error('Non authentifié');
   }
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  console.log('[earnTokens] Today date:', today.toISOString());
+  const tokensEarned = taps * 1;
 
-  const { data: todayTaps, error: tapsError } = await supabase
-    .from('tap_earnings')
-    .select('tokens_earned')
-    .eq('user_id', user.id)
-    .gte('created_at', today.toISOString());
-
-  console.log('[earnTokens] Today taps query:', { todayTaps, tapsError });
-
-  const totalTapsToday = todayTaps?.reduce((sum, tap) => sum + tap.tokens_earned, 0) || 0;
-  console.log('[earnTokens] Total taps today:', totalTapsToday);
-
-  const DAILY_LIMIT = 1000;
-
-  if (totalTapsToday >= DAILY_LIMIT) {
-    console.error('[earnTokens] Daily limit reached!');
-    throw new Error('Limite quotidienne atteinte');
-  }
-
-  const remainingTaps = DAILY_LIMIT - totalTapsToday;
-  const actualTaps = Math.min(taps, remainingTaps);
-  const tokensEarned = actualTaps * 1;
-
-  console.log('[earnTokens] Calculation:', { remainingTaps, actualTaps, tokensEarned });
+  console.log('[earnTokens] Tokens to earn:', tokensEarned);
 
   console.log('[earnTokens] Calling increment_tokens RPC...');
   const { data: newBalance, error: updateError } = await supabase
@@ -200,7 +176,7 @@ export async function earnTokens(taps: number = 1) {
   const result = {
     tokens_earned: tokensEarned,
     new_balance: newBalance,
-    remaining_taps: remainingTaps - actualTaps,
+    remaining_taps: null,
   };
 
   console.log('[earnTokens] ========== SUCCESS ==========');
