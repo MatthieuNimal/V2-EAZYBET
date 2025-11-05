@@ -256,7 +256,7 @@ export async function getUserBets(status?: 'active' | 'history'): Promise<any[]>
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
 
-  let query = supabase
+  let simpleBetsQuery = supabase
     .from('bets')
     .select(`
       *,
@@ -270,23 +270,52 @@ export async function getUserBets(status?: 'active' | 'history'): Promise<any[]>
         match_date
       )
     `)
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false });
+    .eq('user_id', user.id);
+
+  let comboBetsQuery = supabase
+    .from('combo_bets')
+    .select(`
+      *,
+      combo_bet_selections (
+        choice,
+        odds,
+        matches:match_id (
+          id,
+          team_a,
+          team_b,
+          league,
+          status,
+          result,
+          match_date
+        )
+      )
+    `)
+    .eq('user_id', user.id);
 
   if (status === 'active') {
-    query = query.is('is_win', null);
+    simpleBetsQuery = simpleBetsQuery.is('is_win', null);
+    comboBetsQuery = comboBetsQuery.is('is_win', null);
   } else if (status === 'history') {
-    query = query.not('is_win', 'is', null);
+    simpleBetsQuery = simpleBetsQuery.not('is_win', 'is', null);
+    comboBetsQuery = comboBetsQuery.not('is_win', 'is', null);
   }
 
-  const { data, error } = await query;
+  const [simpleBetsResult, comboBetsResult] = await Promise.all([
+    simpleBetsQuery.order('created_at', { ascending: false }),
+    comboBetsQuery.order('created_at', { ascending: false })
+  ]);
 
-  if (error) {
-    console.error('Error fetching bets:', error);
-    return [];
-  }
+  const simpleBets = simpleBetsResult.data || [];
+  const comboBets = (comboBetsResult.data || []).map(bet => ({
+    ...bet,
+    is_combo: true
+  }));
 
-  return data || [];
+  const allBets = [...simpleBets, ...comboBets].sort((a, b) => {
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
+
+  return allBets;
 }
 
 export async function earnTokens(taps: number = 1) {

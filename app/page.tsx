@@ -11,6 +11,8 @@ import type { Match } from '@/lib/supabase-client';
 import { useNavigationStore, useBadgeStore } from '@/lib/store';
 import { ActiveBetCard } from '@/components/active-bet-card';
 import { FinishedBetCard } from '@/components/finished-bet-card';
+import { ActiveComboBetCard } from '@/components/active-combo-bet-card';
+import { FinishedComboBetCard } from '@/components/finished-combo-bet-card';
 
 export default function Home() {
   const { activeHomeTab: activeTab, setActiveHomeTab: setActiveTab } = useNavigationStore();
@@ -175,7 +177,11 @@ export default function Home() {
         <div className="mt-6 px-4 pb-32">
           <div className="space-y-3">
             {activeBets.map((bet) => (
-              <ActiveBetCard key={bet.id} bet={bet} />
+              bet.is_combo ? (
+                <ActiveComboBetCard key={bet.id} bet={bet} />
+              ) : (
+                <ActiveBetCard key={bet.id} bet={bet} />
+              )
             ))}
           </div>
         </div>
@@ -212,7 +218,11 @@ export default function Home() {
         <div className="mt-6 px-4 pb-32">
           <div className="space-y-3">
             {finishedBets.map((bet) => (
-              <FinishedBetCard key={bet.id} bet={bet} />
+              bet.is_combo ? (
+                <FinishedComboBetCard key={bet.id} bet={bet} />
+              ) : (
+                <FinishedBetCard key={bet.id} bet={bet} />
+              )
             ))}
           </div>
         </div>
