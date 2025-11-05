@@ -1,0 +1,181 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { fetchMatches } from '@/lib/api-client';
+import type { Match } from '@/lib/supabase-client';
+import { Trophy } from 'lucide-react';
+
+export default function AdminPage() {
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [resolving, setResolving] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadMatches();
+  }, []);
+
+  async function loadMatches() {
+    const data = await fetchMatches();
+    setMatches(data);
+    setLoading(false);
+  }
+
+  async function handleResolveMatch(matchId: string, result: 'A' | 'Draw' | 'B') {
+    if (!confirm('Êtes-vous sûr de vouloir résoudre ce match ?')) return;
+
+    setResolving(matchId);
+
+    try {
+      const response = await fetch('/api/matches/resolve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ matchId, result }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(`Match résolu avec succès ! ${data.processed} paris traités.`);
+        await loadMatches();
+      } else {
+        alert(`Erreur : ${data.error}`);
+      }
+    } catch (error: any) {
+      alert(`Erreur : ${error.message}`);
+    } finally {
+      setResolving(null);
+    }
+  }
+
+  async function handleSimulateMatch(matchId: string) {
+    if (!confirm('Simuler un résultat aléatoire pour ce match ?')) return;
+
+    setResolving(matchId);
+
+    try {
+      const response = await fetch('/api/matches/resolve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ matchId, simulate: true }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(`Match simulé avec succès ! ${data.processed} paris traités.`);
+        await loadMatches();
+      } else {
+        alert(`Erreur : ${data.error}`);
+      }
+    } catch (error: any) {
+      alert(`Erreur : ${error.message}`);
+    } finally {
+      setResolving(null);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto p-4">
+        <p className="text-white text-center">Chargement...</p>
+      </div>
+    );
+  }
+
+  const upcomingMatches = matches.filter(m => m.status === 'upcoming');
+  const finishedMatches = matches.filter(m => m.status === 'finished');
+
+  return (
+    <div className="max-w-4xl mx-auto p-4">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="p-3 rounded-2xl bg-gradient-to-br from-red-500/20 to-orange-500/20">
+          <Trophy className="w-8 h-8 text-red-400" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-white">Panel Admin</h1>
+          <p className="text-sm text-white/50">Résoudre les matchs</p>
+        </div>
+      </div>
+
+      <div className="mb-8">
+        <h2 className="text-xl font-bold text-white mb-4">Matchs en attente</h2>
+        {upcomingMatches.length === 0 ? (
+          <p className="text-white/50">Aucun match en attente</p>
+        ) : (
+          <div className="space-y-3">
+            {upcomingMatches.map((match) => (
+              <div
+                key={match.id}
+                className="bg-[#1C2128] border border-[#30363D] rounded-xl p-4"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <p className="text-white/50 text-xs mb-1">{match.league}</p>
+                    <p className="text-white font-bold">
+                      {match.team_a} vs {match.team_b}
+                    </p>
+                    <p className="text-white/50 text-xs mt-1">
+                      Cotes: {match.odds_a.toFixed(2)} / {match.odds_draw.toFixed(2)} / {match.odds_b.toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleResolveMatch(match.id, 'A')}
+                    disabled={resolving === match.id}
+                    className="flex-1 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg disabled:opacity-50"
+                  >
+                    {match.team_a} gagne
+                  </button>
+                  <button
+                    onClick={() => handleResolveMatch(match.id, 'Draw')}
+                    disabled={resolving === match.id}
+                    className="flex-1 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-bold rounded-lg disabled:opacity-50"
+                  >
+                    Match nul
+                  </button>
+                  <button
+                    onClick={() => handleResolveMatch(match.id, 'B')}
+                    disabled={resolving === match.id}
+                    className="flex-1 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg disabled:opacity-50"
+                  >
+                    {match.team_b} gagne
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => handleSimulateMatch(match.id)}
+                  disabled={resolving === match.id}
+                  className="w-full mt-2 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg disabled:opacity-50"
+                >
+                  Simuler résultat aléatoire
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div>
+        <h2 className="text-xl font-bold text-white mb-4">Matchs terminés ({finishedMatches.length})</h2>
+        <div className="space-y-2">
+          {finishedMatches.slice(0, 5).map((match) => (
+            <div
+              key={match.id}
+              className="bg-[#1C2128]/50 border border-[#30363D] rounded-xl p-3"
+            >
+              <p className="text-white/50 text-xs mb-1">{match.league}</p>
+              <p className="text-white text-sm">
+                {match.team_a} vs {match.team_b}
+              </p>
+              <p className="text-green-400 text-xs mt-1">
+                Résultat: {match.result === 'A' ? match.team_a : match.result === 'B' ? match.team_b : 'Match nul'}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}

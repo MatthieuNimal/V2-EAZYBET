@@ -31,7 +31,10 @@ export function BetSlip() {
   const availableBalance = profile?.tokens || 0;
   const isCombo = selections.length > 1;
   const selection = selections[0];
-  const potentialDiamonds = Math.round((betAmount * selection.odds) / 10);
+
+  const totalWin = Math.round(betAmount * selection.odds);
+  const profit = totalWin - betAmount;
+  const potentialDiamonds = Math.round(profit * 0.01);
 
   const handlePlaceBet = async () => {
     if (!betAmount || betAmount <= 0 || betAmount > availableBalance) return;
@@ -187,12 +190,28 @@ export function BetSlip() {
           )}
 
           {betAmount > 0 && !isCombo && (
-            <div className="bg-gradient-to-r from-[#2A84FF]/20 to-[#2A84FF]/10 border border-[#2A84FF]/30 rounded-2xl p-4 mb-6">
-              <div className="flex items-center justify-between">
-                <p className="text-white/70 text-sm">Diamants potentiels</p>
-                <p className="text-[#2A84FF] font-bold text-2xl">{potentialDiamonds}</p>
+            <>
+              <div className="bg-gradient-to-r from-[#F5C144]/20 to-[#F5C144]/10 border border-[#F5C144]/30 rounded-2xl p-4 mb-3">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-white/70 text-sm">Gain total si vous gagnez</p>
+                  <p className="text-[#F5C144] font-bold text-2xl">{totalWin}</p>
+                </div>
+                <div className="flex items-center justify-between">
+                  <p className="text-white/50 text-xs">Profit</p>
+                  <p className="text-green-400 text-sm font-bold">+{profit} jetons</p>
+                </div>
               </div>
-            </div>
+
+              <div className="bg-gradient-to-r from-[#2A84FF]/20 to-[#2A84FF]/10 border border-[#2A84FF]/30 rounded-2xl p-4 mb-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-white/70 text-sm">Bonus diamants (1% du profit)</p>
+                    <p className="text-white/50 text-xs">Si vous gagnez</p>
+                  </div>
+                  <p className="text-[#2A84FF] font-bold text-2xl">{potentialDiamonds}</p>
+                </div>
+              </div>
+            </>
           )}
 
           {error && (

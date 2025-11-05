@@ -22,6 +22,10 @@ export async function fetchMatches(status?: string): Promise<Match[]> {
 }
 
 export async function placeBet(matchId: string, amount: number, choice: 'A' | 'Draw' | 'B') {
+  if (amount < 10) {
+    throw new Error('Mise minimum : 10 jetons');
+  }
+
   const { data: match } = await supabase
     .from('matches')
     .select('*')
@@ -32,6 +36,10 @@ export async function placeBet(matchId: string, amount: number, choice: 'A' | 'D
     throw new Error('Match non trouvé');
   }
 
+  if (match.status !== 'upcoming') {
+    throw new Error('Ce match n\'est plus disponible pour les paris');
+  }
+
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     throw new Error('Non authentifié');
@@ -39,7 +47,7 @@ export async function placeBet(matchId: string, amount: number, choice: 'A' | 'D
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('tokens')
+    .select('tokens, total_bets')
     .eq('id', user.id)
     .maybeSingle();
 
@@ -48,11 +56,16 @@ export async function placeBet(matchId: string, amount: number, choice: 'A' | 'D
   }
 
   const odds = choice === 'A' ? match.odds_a : choice === 'Draw' ? match.odds_draw : match.odds_b;
-  const potentialDiamonds = Math.round((amount * odds) / 10);
+  const totalWin = Math.round(amount * odds);
+  const profit = totalWin - amount;
+  const diamondsFromProfit = Math.round(profit * 0.01);
 
   await supabase
     .from('profiles')
-    .update({ tokens: profile.tokens - amount })
+    .update({
+      tokens: profile.tokens - amount,
+      total_bets: profile.total_bets + 1
+    })
     .eq('id', user.id);
 
   const { data: bet, error } = await supabase
@@ -63,7 +76,8 @@ export async function placeBet(matchId: string, amount: number, choice: 'A' | 'D
       amount,
       choice,
       odds,
-      potential_diamonds: potentialDiamonds,
+      potential_win: totalWin,
+      potential_diamonds: diamondsFromProfit,
     })
     .select()
     .single();
@@ -71,22 +85,12 @@ export async function placeBet(matchId: string, amount: number, choice: 'A' | 'D
   if (error) {
     await supabase
       .from('profiles')
-      .update({ tokens: profile.tokens })
+      .update({
+        tokens: profile.tokens,
+        total_bets: profile.total_bets
+      })
       .eq('id', user.id);
     throw new Error('Erreur lors du pari');
-  }
-
-  const { data: currentProfile } = await supabase
-    .from('profiles')
-    .select('total_bets')
-    .eq('id', user.id)
-    .maybeSingle();
-
-  if (currentProfile) {
-    await supabase
-      .from('profiles')
-      .update({ total_bets: currentProfile.total_bets + 1 })
-      .eq('id', user.id);
   }
 
   return bet;
