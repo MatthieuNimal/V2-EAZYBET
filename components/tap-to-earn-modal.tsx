@@ -32,7 +32,7 @@ export function TapToEarnModal({ open, onOpenChange }: TapToEarnModalProps) {
   const [flyingCoins, setFlyingCoins] = useState<FlyingCoin[]>([]);
   const [isCollecting, setIsCollecting] = useState(false);
   const [showButton, setShowButton] = useState(true);
-  const { refreshProfile } = useAuth();
+  const { refreshProfile, updateTokensOptimistic } = useAuth();
 
   const handleTap = (e: React.MouseEvent<HTMLDivElement>) => {
     if (activeTaps >= 3) return;
@@ -90,6 +90,8 @@ export function TapToEarnModal({ open, onOpenChange }: TapToEarnModalProps) {
 
     const tokensToEarn = tapCount * 10;
 
+    updateTokensOptimistic(tokensToEarn);
+
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('tokens-earned', {
         detail: { amount: tokensToEarn }
@@ -101,6 +103,7 @@ export function TapToEarnModal({ open, onOpenChange }: TapToEarnModalProps) {
       await refreshProfile();
     } catch (error: any) {
       console.error('Error earning tokens:', error);
+      updateTokensOptimistic(-tokensToEarn);
     }
 
     setTimeout(() => {

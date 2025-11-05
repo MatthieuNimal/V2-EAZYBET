@@ -25,6 +25,12 @@ export function HeaderCoins({ onCoinsClick }: HeaderCoinsProps) {
   const diamonds = mounted && profile ? profile.diamonds : 0;
 
   useEffect(() => {
+    if (mounted && profile && displayCoins === 0) {
+      setDisplayCoins(profile.tokens);
+    }
+  }, [mounted, profile, displayCoins]);
+
+  useEffect(() => {
     if (!mounted) return;
 
     const handleTokensEarned = (event: CustomEvent) => {
@@ -41,6 +47,8 @@ export function HeaderCoins({ onCoinsClick }: HeaderCoinsProps) {
   }, [mounted]);
 
   useEffect(() => {
+    if (!mounted || coins === 0) return;
+
     if (displayCoins !== coins && coins > displayCoins) {
       const diff = coins - displayCoins;
       const steps = Math.min(diff, 20);
@@ -58,10 +66,10 @@ export function HeaderCoins({ onCoinsClick }: HeaderCoinsProps) {
       }, 30);
 
       return () => clearInterval(interval);
-    } else if (displayCoins !== coins) {
+    } else if (displayCoins !== coins && coins < displayCoins) {
       setDisplayCoins(coins);
     }
-  }, [coins, displayCoins]);
+  }, [coins, displayCoins, mounted]);
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 px-4 pt-4 pb-3 header-blur border-b border-[#30363D]/30">

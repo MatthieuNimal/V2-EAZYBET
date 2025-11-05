@@ -13,6 +13,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, username: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  updateTokensOptimistic: (amount: number) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -41,6 +42,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshProfile = async () => {
     if (user) {
       await fetchProfile(user.id);
+    }
+  };
+
+  const updateTokensOptimistic = (amount: number) => {
+    if (profile) {
+      setProfile({
+        ...profile,
+        tokens: profile.tokens + amount
+      });
     }
   };
 
@@ -133,7 +143,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signIn, signUp, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ user, profile, loading, signIn, signUp, signOut, refreshProfile, updateTokensOptimistic }}>
       {children}
     </AuthContext.Provider>
   );
