@@ -16,7 +16,7 @@ export default function AuthPage() {
     setIsLoading(true);
 
     setTimeout(() => {
-      router.push('/home');
+      router.push('/');
     }, 1000);
   };
 
