@@ -23,14 +23,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string, forceRefresh: boolean = false) => {
     try {
-      console.log(`[fetchProfile] Fetching profile for user ${userId}`);
-      const { data, error } = await supabase
+      console.log(`[fetchProfile] Fetching profile for user ${userId}, forceRefresh: ${forceRefresh}`);
+
+      const query = supabase
         .from('profiles')
         .select('*')
-        .eq('id', userId)
-        .maybeSingle();
+        .eq('id', userId);
+
+      const { data, error } = await query.maybeSingle();
 
       if (error) {
         console.error('[fetchProfile] Error:', error);
@@ -38,8 +40,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (data) {
-        console.log(`[fetchProfile] Loaded profile with ${data.tokens} tokens`);
-        setProfile(data);
+        console.log(`[fetchProfile] Loaded profile with ${data.tokens} tokens, diamonds: ${data.diamonds}`);
+        console.log('[fetchProfile] Setting profile state...');
+        setProfile({ ...data });
+        console.log('[fetchProfile] Profile state updated');
       } else {
         console.log('[fetchProfile] No profile data returned');
       }
@@ -51,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshProfile = async () => {
     console.log('[refreshProfile] Called, user:', user?.id);
     if (user) {
-      await fetchProfile(user.id);
+      await fetchProfile(user.id, true);
     } else {
       console.log('[refreshProfile] No user to refresh');
     }

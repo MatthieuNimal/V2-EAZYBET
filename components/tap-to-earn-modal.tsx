@@ -75,26 +75,7 @@ export function TapToEarnModal({ open, onOpenChange }: TapToEarnModalProps) {
     setIsCollecting(true);
     setShowButton(false);
 
-    const coinCount = 5;
-    const newCoins: FlyingCoin[] = [];
-
-    for (let i = 0; i < coinCount; i++) {
-      newCoins.push({
-        id: Date.now() + Math.random() + i,
-        startX: 0,
-        startY: 0,
-      });
-    }
-
-    setFlyingCoins(newCoins);
-
     const tokensToEarn = tapCount * 1;
-
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('tokens-earned', {
-        detail: { amount: tokensToEarn }
-      }));
-    }
 
     try {
       console.log(`[Tap-to-Earn] Starting collection: ${tapCount} taps = ${tokensToEarn} tokens`);
@@ -103,23 +84,45 @@ export function TapToEarnModal({ open, onOpenChange }: TapToEarnModalProps) {
       const result = await earnTokens(tapCount);
       console.log('[Tap-to-Earn] API result:', JSON.stringify(result));
 
-      await new Promise(resolve => setTimeout(resolve, 500));
-
       console.log('[Tap-to-Earn] Refreshing profile...');
       await refreshProfile();
-      console.log('[Tap-to-Earn] Collection complete');
-    } catch (error: any) {
-      console.error('[Tap-to-Earn] Error earning tokens:', error);
-      console.error('[Tap-to-Earn] Error details:', error.message);
-    }
+      console.log('[Tap-to-Earn] Profile refreshed, new balance should be:', result.new_balance);
 
-    setTimeout(() => {
+      const coinCount = 5;
+      const newCoins: FlyingCoin[] = [];
+
+      for (let i = 0; i < coinCount; i++) {
+        newCoins.push({
+          id: Date.now() + Math.random() + i,
+          startX: 0,
+          startY: 0,
+        });
+      }
+
+      setFlyingCoins(newCoins);
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('tokens-earned', {
+          detail: { amount: tokensToEarn }
+        }));
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
       setFlyingCoins([]);
       setIsCollecting(false);
       setTapCount(0);
       setShowButton(true);
       onOpenChange(false);
-    }, 1000);
+
+      console.log('[Tap-to-Earn] Collection complete');
+    } catch (error: any) {
+      console.error('[Tap-to-Earn] Error earning tokens:', error);
+      console.error('[Tap-to-Earn] Error details:', error.message);
+
+      setIsCollecting(false);
+      setShowButton(true);
+    }
   };
 
   return (

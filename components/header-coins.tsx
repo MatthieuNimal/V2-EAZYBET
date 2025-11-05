@@ -26,6 +26,7 @@ export function HeaderCoins({ onCoinsClick }: HeaderCoinsProps) {
 
   useEffect(() => {
     if (mounted && profile && displayCoins === 0) {
+      console.log('[HeaderCoins] Initial setup, setting displayCoins to:', profile.tokens);
       setDisplayCoins(profile.tokens);
     }
   }, [mounted, profile, displayCoins]);
@@ -49,7 +50,10 @@ export function HeaderCoins({ onCoinsClick }: HeaderCoinsProps) {
   useEffect(() => {
     if (!mounted) return;
 
+    console.log('[HeaderCoins] Coins changed:', { oldDisplay: displayCoins, newCoins: coins });
+
     if (displayCoins !== coins && coins > displayCoins) {
+      console.log('[HeaderCoins] Animating increase from', displayCoins, 'to', coins);
       const diff = coins - displayCoins;
       const steps = Math.min(diff, 20);
       const increment = diff / steps;
@@ -67,6 +71,7 @@ export function HeaderCoins({ onCoinsClick }: HeaderCoinsProps) {
 
       return () => clearInterval(interval);
     } else if (displayCoins !== coins) {
+      console.log('[HeaderCoins] Direct update from', displayCoins, 'to', coins);
       setDisplayCoins(coins);
     }
   }, [coins, displayCoins, mounted]);
