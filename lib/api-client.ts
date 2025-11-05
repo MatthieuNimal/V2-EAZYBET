@@ -21,6 +21,43 @@ export async function fetchMatches(status?: string): Promise<Match[]> {
   return data || [];
 }
 
+export async function fetchAvailableMatches(): Promise<Match[]> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const matches = await fetchMatches('upcoming');
+
+  const { data: userBets } = await supabase
+    .from('bets')
+    .select('match_id')
+    .eq('user_id', user.id)
+    .is('is_win', null);
+
+  const { data: comboBets } = await supabase
+    .from('combo_bets')
+    .select('combo_bet_selections(match_id)')
+    .eq('user_id', user.id)
+    .is('is_win', null);
+
+  const bettedMatchIds = new Set<string>();
+
+  if (userBets) {
+    userBets.forEach(bet => bettedMatchIds.add(bet.match_id));
+  }
+
+  if (comboBets) {
+    comboBets.forEach(combo => {
+      if (combo.combo_bet_selections) {
+        combo.combo_bet_selections.forEach((sel: any) => {
+          bettedMatchIds.add(sel.match_id);
+        });
+      }
+    });
+  }
+
+  return matches.filter(match => !bettedMatchIds.has(match.id));
+}
+
 export async function placeBet(matchId: string, amount: number, choice: 'A' | 'Draw' | 'B', currency: 'tokens' | 'diamonds' = 'tokens') {
   if (amount < 10) {
     throw new Error('Mise minimum : 10');

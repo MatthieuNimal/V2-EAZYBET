@@ -6,7 +6,7 @@ import { TabsMatchs } from '@/components/tabs-matchs';
 import { LeagueSection } from '@/components/league-section';
 import { BetSlip } from '@/components/bet-slip';
 import { useAuth } from '@/lib/auth-context';
-import { fetchMatches, getUserBets } from '@/lib/api-client';
+import { fetchMatches, fetchAvailableMatches, getUserBets } from '@/lib/api-client';
 import type { Match } from '@/lib/supabase-client';
 import { useNavigationStore, useBadgeStore } from '@/lib/store';
 import { ActiveBetCard } from '@/components/active-bet-card';
@@ -38,7 +38,7 @@ export default function Home() {
   useEffect(() => {
     async function loadMatches() {
       setLoading(true);
-      const data = await fetchMatches('upcoming');
+      const data = await fetchAvailableMatches();
       setMatches(data);
       setLoading(false);
     }
@@ -72,7 +72,11 @@ export default function Home() {
   useEffect(() => {
     const handleBetPlaced = async () => {
       setHasNewBet(true);
-      if (activeTab === 'played') {
+
+      if (activeTab === 'upcoming') {
+        const data = await fetchAvailableMatches();
+        setMatches(data);
+      } else if (activeTab === 'played') {
         const data = await getUserBets('active');
         setActiveBets(data);
       }
