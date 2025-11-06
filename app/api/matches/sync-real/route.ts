@@ -33,14 +33,13 @@ interface Competition {
 
 const COMPETITIONS: Competition[] = [
   { sportKey: 'soccer_france_ligue_one', name: 'Ligue 1', emoji: '🇫🇷' },
-  { sportKey: 'soccer_england_premier_league', name: 'Premier League', emoji: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
+  { sportKey: 'soccer_epl', name: 'Premier League', emoji: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
   { sportKey: 'soccer_spain_la_liga', name: 'La Liga', emoji: '🇪🇸' },
   { sportKey: 'soccer_italy_serie_a', name: 'Serie A', emoji: '🇮🇹' },
   { sportKey: 'soccer_germany_bundesliga', name: 'Bundesliga', emoji: '🇩🇪' },
-  { sportKey: 'soccer_uefa_champions_league', name: 'Champions League', emoji: '⭐' },
+  { sportKey: 'soccer_uefa_champs_league', name: 'Champions League', emoji: '⭐' },
   { sportKey: 'soccer_uefa_europa_league', name: 'Europa League', emoji: '🏆' },
   { sportKey: 'soccer_uefa_europa_conference_league', name: 'Europa Conference League', emoji: '🥉' },
-  { sportKey: 'soccer_international_friendly', name: 'Matchs Internationaux', emoji: '🌍' },
 ];
 
 export async function POST(request: NextRequest) {
