@@ -101,10 +101,18 @@ export async function POST(request: NextRequest) {
       try {
         const apiUrl = `https://api.the-odds-api.com/v4/sports/${competition.sportKey}/odds/?regions=eu&markets=h2h&apiKey=${apiKey}`;
 
-        const response = await fetch(apiUrl);
+        console.log(`Fetching ${competition.name}...`);
+
+        const response = await fetch(apiUrl, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          },
+        });
 
         if (!response.ok) {
-          console.error(`Odds API error for ${competition.name}:`, response.statusText);
+          console.error(`Odds API error for ${competition.name}:`, response.status, response.statusText);
+          totalErrorCount++;
           continue;
         }
 
@@ -202,10 +210,12 @@ export async function POST(request: NextRequest) {
           }
         }
       } catch (err) {
-        console.error(`Error fetching ${competition.name}:`, err);
+        console.error(`Error fetching ${competition.name}:`, err instanceof Error ? err.message : err);
         totalErrorCount++;
       }
     }
+
+    console.log(`Sync complete: ${totalSyncedCount} synced, ${totalUpdatedCount} updated, ${totalSkippedCount} skipped, ${totalErrorCount} errors`);
 
     const { error: statusUpdateError } = await supabase
       .from('matches')
@@ -218,14 +228,28 @@ export async function POST(request: NextRequest) {
       console.error('Status update error:', statusUpdateError);
     }
 
-    const { error: deleteOldError } = await supabase
-      .from('matches')
-      .delete()
-      .eq('match_mode', 'real')
-      .or(`match_date.lt.${now.toISOString()},match_date.gt.${sevenDaysFromNow.toISOString()}`);
+    try {
+      const { error: deleteOldError1 } = await supabase
+        .from('matches')
+        .delete()
+        .eq('match_mode', 'real')
+        .lt('match_date', now.toISOString());
 
-    if (deleteOldError) {
-      console.error('Delete old matches error:', deleteOldError);
+      if (deleteOldError1) {
+        console.error('Delete old matches (past) error:', deleteOldError1);
+      }
+
+      const { error: deleteOldError2 } = await supabase
+        .from('matches')
+        .delete()
+        .eq('match_mode', 'real')
+        .gt('match_date', sevenDaysFromNow.toISOString());
+
+      if (deleteOldError2) {
+        console.error('Delete old matches (future) error:', deleteOldError2);
+      }
+    } catch (err) {
+      console.error('Delete old matches error:', err);
     }
 
     return createSuccessResponse({
