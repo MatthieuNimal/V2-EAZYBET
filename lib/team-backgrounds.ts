@@ -56,5 +56,17 @@ export const TEAM_BACKGROUNDS: Record<string, string> = {
   "Bologne": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762459720/Bologne_iyhmiu.png",
   "Atalanta": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762459713/Atalanta_pssqjd.png",
   "AS Roma": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762459702/As_Roma_pasdkv.png",
-  "AC Milan": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762459690/Ac_milan_zrybwn.png"
+  "AC Milan": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762459690/Ac_milan_zrybwn.png",
+
+  // 🇩🇪 Bundesliga
+  "Bayer Leverkusen": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762461411/Bayer_Leverkusen_dpxoeu.png",
+  "Bayern Munich": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762461531/Bayern_Munich_dszded.png",
+  "FC Cologne": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762461543/FC_Cologne_kh4ogy.png",
+  "Fribourg": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762461556/Fribourg_ngksxs.png",
+  "Hoffenheim": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762461570/Hoffenheim_fmsxpb.png",
+  "Mayence": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762461581/Mayence_v90fkc.png",
+  "RB Leipzig": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762461591/RB_Leipzig_yjxduo.png",
+  "Stuttgart": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762461601/Stuttgart_gzsicj.png",
+  "Union Berlin": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762461614/Union_berlin_amhza6.png",
+  "VfL Wolfsburg": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762461624/Wolfsburg_feownu.png"
 };

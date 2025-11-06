@@ -84,6 +84,18 @@ export function MatchCard({ match }: MatchCardProps) {
     if (normalized.includes("udinese") || normalized.includes("udine")) return "Udinese";
     if (normalized.includes("parme") || normalized.includes("parma")) return "Parme";
 
+    // 🇩🇪 Bundesliga
+    if (normalized.includes("leverkusen")) return "Bayer Leverkusen";
+    if (normalized.includes("bayern")) return "Bayern Munich";
+    if (normalized.includes("cologne") || normalized.includes("koln")) return "FC Cologne";
+    if (normalized.includes("fribourg") || normalized.includes("freiburg")) return "Fribourg";
+    if (normalized.includes("hoffenheim")) return "Hoffenheim";
+    if (normalized.includes("mayence") || normalized.includes("mainz")) return "Mayence";
+    if (normalized.includes("leipzig")) return "RB Leipzig";
+    if (normalized.includes("stuttgart")) return "Stuttgart";
+    if (normalized.includes("union") && normalized.includes("berlin")) return "Union Berlin";
+    if (normalized.includes("wolfsburg")) return "VfL Wolfsburg";
+
     return name;
   };
 
