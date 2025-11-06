@@ -45,6 +45,18 @@ const COMPETITIONS: Competition[] = [
 
 export async function POST(request: NextRequest) {
   try {
+    return createSuccessResponse({
+      message: '⚠️ Synchronisation API temporairement désactivée. Les requêtes vers l\'API externe The Odds sont bloquées dans cet environnement. Utilisez le bouton "Matchs Demo" pour ajouter des matchs de test.',
+      stats: {
+        competitions: 0,
+        synced: 0,
+        updated: 0,
+        skipped: 0,
+        errors: 0,
+      },
+    });
+
+    /* DÉSACTIVÉ - L'API externe ne fonctionne pas dans cet environnement
     const authHeader = request.headers.get('authorization');
     if (!authHeader) {
       return createErrorResponse('Unauthorized', 401);
@@ -262,6 +274,7 @@ export async function POST(request: NextRequest) {
         errors: totalErrorCount,
       },
     });
+    */
 
   } catch (error: any) {
     console.error('Sync error:', error);
