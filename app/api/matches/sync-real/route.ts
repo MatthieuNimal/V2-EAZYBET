@@ -1,16 +1,9 @@
 import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase-client';
 import { createErrorResponse, createSuccessResponse } from '@/lib/auth-utils';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
-  }
-});
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 interface OddsAPIMatch {
   id: string;
@@ -40,13 +33,23 @@ export async function POST(request: NextRequest) {
     }
 
     const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: {
+          Authorization: authHeader
+        }
+      }
+    });
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
     if (authError || !user) {
+      console.error('Auth error:', authError);
       return createErrorResponse('Unauthorized', 401);
     }
 
-    const { data: profile, error: profileError } = await supabaseAdmin
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', user.id)
@@ -58,6 +61,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!profile || profile.role !== 'admin') {
+      console.error('User is not admin. Profile:', profile);
       return createErrorResponse('Access denied: Admin role required', 403);
     }
 
@@ -110,7 +114,7 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        const { data: existingMatch } = await supabaseAdmin
+        const { data: existingMatch } = await supabase
           .from('matches')
           .select('id')
           .eq('external_api_id', match.id)
@@ -118,7 +122,7 @@ export async function POST(request: NextRequest) {
           .maybeSingle();
 
         if (existingMatch) {
-          const { error: updateError } = await supabaseAdmin
+          const { error: updateError } = await supabase
             .from('matches')
             .update({
               odds_a: oddsA,
@@ -136,7 +140,7 @@ export async function POST(request: NextRequest) {
             updatedCount++;
           }
         } else {
-          const { error: insertError } = await supabaseAdmin
+          const { error: insertError } = await supabase
             .from('matches')
             .insert({
               team_a: match.home_team,
