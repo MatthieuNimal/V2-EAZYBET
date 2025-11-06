@@ -105,6 +105,7 @@ export default function ProfilPage() {
       alert(`+${reward} 💰 ajoutés à votre compte !`);
       await refreshProfile();
       window.dispatchEvent(new Event('profile-updated'));
+      await loadAchievements();
     } catch (error: any) {
       setAchievements(prev => prev.map(a =>
         a.id === achievementId ? { ...a, claimed: false } : a
