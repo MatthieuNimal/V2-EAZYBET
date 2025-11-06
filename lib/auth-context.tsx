@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (data) {
-        console.log(`[fetchProfile] Loaded profile with ${data.tokens} tokens, diamonds: ${data.diamonds}`);
+        console.log(`[fetchProfile] Loaded profile with ${data.tokens} tokens, diamonds: ${data.diamonds}, role: ${data.role}`);
         console.log('[fetchProfile] Setting profile state...');
         setProfile({ ...data });
         console.log('[fetchProfile] Profile state updated');

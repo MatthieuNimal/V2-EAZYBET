@@ -8,13 +8,19 @@ import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase-client';
 
 export default function AdminPage() {
-  const { profile } = useAuth();
+  const { profile, loading: authLoading } = useAuth();
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
   const [resolving, setResolving] = useState<string | null>(null);
   const [syncing, setSyncing] = useState(false);
 
   const isAdmin = profile?.role === 'admin';
+
+  useEffect(() => {
+    console.log('[AdminPage] Profile loaded:', profile);
+    console.log('[AdminPage] User role:', profile?.role);
+    console.log('[AdminPage] Is admin:', isAdmin);
+  }, [profile, isAdmin]);
 
   useEffect(() => {
     loadMatches();
