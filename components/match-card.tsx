@@ -70,6 +70,20 @@ export function MatchCard({ match }: MatchCardProps) {
     if (normalized.includes("tottenham") || normalized.includes("spurs")) return "Tottenham";
     if (normalized.includes("west") && normalized.includes("ham")) return "West Ham";
 
+    // 🇮🇹 Serie A
+    if (normalized.includes("milan") && normalized.includes("inter")) return "Inter Milan";
+    if (normalized.includes("milan")) return "AC Milan";
+    if (normalized.includes("juventus") || normalized.includes("juve")) return "Juventus";
+    if (normalized.includes("roma") && !normalized.includes("lazio")) return "AS Roma";
+    if (normalized.includes("lazio")) return "Lazio Rome";
+    if (normalized.includes("napoli") || normalized.includes("naples")) return "Napoli";
+    if (normalized.includes("atalanta")) return "Atalanta";
+    if (normalized.includes("bologne") || normalized.includes("bologna")) return "Bologne";
+    if (normalized.includes("sassuolo")) return "Sassuolo";
+    if (normalized.includes("torino") || normalized.includes("turin")) return "Torino";
+    if (normalized.includes("udinese") || normalized.includes("udine")) return "Udinese";
+    if (normalized.includes("parme") || normalized.includes("parma")) return "Parme";
+
     return name;
   };
 

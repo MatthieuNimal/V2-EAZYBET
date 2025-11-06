@@ -42,5 +42,19 @@ export const TEAM_BACKGROUNDS: Record<string, string> = {
   "Newcastle": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762457331/Newcastle_wit3i3.png",
   "Sunderland": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762457339/Sunderland_e9m2jv.png",
   "Tottenham": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762457348/Totthenam_ixea6c.png",
-  "West Ham": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762457358/West_Ham_dexnhw.png"
+  "West Ham": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762457358/West_Ham_dexnhw.png",
+
+  // 🇮🇹 Serie A
+  "Udinese": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762459845/Unidese_onqrgj.png",
+  "Torino": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762459833/Torino_zxrwk7.png",
+  "Sassuolo": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762459819/Sassuolo_cjd2go.png",
+  "Parme": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762459808/Parme_szcoor.png",
+  "Napoli": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762459791/Naples_i28m5c.jpg",
+  "Lazio Rome": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762459781/Lazio_reedtk.png",
+  "Juventus": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762459769/Juventus_u4drty.png",
+  "Inter Milan": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762459757/Inter_Milan_m9oekl.png",
+  "Bologne": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762459720/Bologne_iyhmiu.png",
+  "Atalanta": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762459713/Atalanta_pssqjd.png",
+  "AS Roma": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762459702/As_Roma_pasdkv.png",
+  "AC Milan": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762459690/Ac_milan_zrybwn.png"
 };
