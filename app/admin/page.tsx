@@ -156,6 +156,41 @@ export default function AdminPage() {
     }
   }
 
+  async function handleUpdateImages() {
+    if (!confirm('Mettre à jour les images des matchs depuis Wikimedia ?')) return;
+
+    setSyncing(true);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        alert('Erreur : Vous devez être connecté');
+        return;
+      }
+
+      const response = await fetch('/api/matches/update-images', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(`Images mises à jour !\n${data.stats.updated} matchs mis à jour\n${data.stats.errors} erreurs`);
+        await loadMatches();
+      } else {
+        alert(`Erreur : ${data.error}`);
+      }
+    } catch (error: any) {
+      alert(`Erreur : ${error.message}`);
+    } finally {
+      setSyncing(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto p-4">
@@ -182,6 +217,14 @@ export default function AdminPage() {
         </div>
         {isAdmin ? (
           <div className="flex gap-2">
+            <button
+              onClick={handleUpdateImages}
+              disabled={syncing}
+              className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <RefreshCw className={`w-5 h-5 ${syncing ? 'animate-spin' : ''}`} />
+              {syncing ? 'MAJ...' : 'Images'}
+            </button>
             <button
               onClick={handleAddDemoMatches}
               disabled={syncing}
