@@ -5,6 +5,7 @@ import { useBetStore, useBetSlipUIStore } from '@/lib/store';
 import { useAuth } from '@/lib/auth-context';
 import { placeBet, placeCombobet } from '@/lib/api-client';
 import { Coins, X, Gem } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export function BetSlip() {
   const { selections, removeSelection, clearSelections } = useBetStore();
@@ -304,13 +305,14 @@ export function BetSlip() {
         </div>
 
         <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#1A1F27] via-[#1A1F27] to-transparent">
-          <button
+          <Button
             onClick={handlePlaceBet}
             disabled={!betAmount || betAmount <= 0 || betAmount > availableBalance || isPlacing}
-            className="w-full py-4 bg-gradient-to-r from-[#C1322B] to-[#8B1F1A] text-white font-bold text-lg rounded-2xl shadow-xl hover:shadow-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-xl active:scale-[0.98]"
+            variant="eazy"
+            className="w-full py-4 text-lg rounded-2xl active:scale-[0.98]"
           >
             {isPlacing ? 'Placement en cours...' : isCombo ? 'Placer le pari combiné' : 'Placer le pari'}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

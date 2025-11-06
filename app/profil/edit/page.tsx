@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { ArrowLeft, User, Mail, Lock, Save, Camera } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function EditProfilePage() {
   const { profile, user, refreshProfile } = useAuth();
@@ -212,14 +213,15 @@ export default function EditProfilePage() {
             </div>
           )}
 
-          <button
+          <Button
             type="submit"
             disabled={isLoading}
-            className="w-full py-4 bg-gradient-to-r from-[#C1322B] to-[#8B1F1A] text-white font-bold rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            variant="eazy"
+            className="w-full py-4 rounded-xl flex items-center justify-center gap-2"
           >
             <Save size={20} />
             {isLoading ? 'Enregistrement...' : 'Enregistrer les modifications'}
-          </button>
+          </Button>
         </form>
       </div>
     </div>

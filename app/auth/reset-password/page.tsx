@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Lock, Check } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState('');
@@ -109,13 +110,14 @@ export default function ResetPasswordPage() {
               </div>
             )}
 
-            <button
+            <Button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 bg-gradient-to-r from-[#C1322B] to-[#8B1F1A] text-white font-bold rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              variant="eazy"
+              className="w-full py-3 rounded-xl"
             >
               {isLoading ? 'Mise à jour...' : 'Réinitialiser le mot de passe'}
-            </button>
+            </Button>
           </form>
         </div>
       </div>

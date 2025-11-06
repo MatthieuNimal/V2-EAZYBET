@@ -60,6 +60,9 @@ const config: Config = {
           '4': 'hsl(var(--chart-4))',
           '5': 'hsl(var(--chart-5))',
         },
+        eazyGradientStart: '#C1322B',
+        eazyGradientMid: '#8A2BE2',
+        eazyGradientEnd: '#007BFF',
       },
       keyframes: {
         'accordion-down': {

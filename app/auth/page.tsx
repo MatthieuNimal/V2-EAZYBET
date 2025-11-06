@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
+import { Button } from '@/components/ui/button';
 
 export default function AuthPage() {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
@@ -171,10 +172,11 @@ export default function AuthPage() {
               </div>
             )}
 
-            <button
+            <Button
               type="submit"
               disabled={isLoading}
-              className="w-full py-4 bg-[#C1322B] hover:bg-[#000000] text-white font-bold rounded-lg transition-all shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              variant="eazy"
+              className="w-full py-4 text-lg rounded-xl transform hover:scale-[1.02] active:scale-[0.98] disabled:transform-none"
             >
               {isLoading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -187,7 +189,7 @@ export default function AuthPage() {
               ) : (
                 mode === 'login' ? 'Se connecter' : "S'inscrire"
               )}
-            </button>
+            </Button>
           </form>
 
           <div className="mt-6 text-center">
@@ -217,16 +219,17 @@ export default function AuthPage() {
                   <p className="text-white/70 mb-6">
                     Si cet e-mail existe, vous recevrez un lien de réinitialisation dans quelques instants.
                   </p>
-                  <button
+                  <Button
                     onClick={() => {
                       setShowForgotPassword(false);
                       setResetSuccess(false);
                       setResetEmail('');
                     }}
-                    className="w-full py-3 bg-gradient-to-r from-[#C1322B] to-[#8B1F1A] text-white font-bold rounded-xl hover:shadow-lg transition-all"
+                    variant="eazy"
+                    className="w-full py-3 rounded-xl"
                   >
                     Fermer
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <>
@@ -265,13 +268,14 @@ export default function AuthPage() {
                       >
                         Annuler
                       </button>
-                      <button
+                      <Button
                         type="submit"
                         disabled={resetLoading}
-                        className="flex-1 py-3 bg-gradient-to-r from-[#C1322B] to-[#8B1F1A] text-white font-bold rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        variant="eazy"
+                        className="flex-1 py-3 rounded-xl"
                       >
                         {resetLoading ? 'Envoi...' : 'Envoyer'}
-                      </button>
+                      </Button>
                     </div>
                   </form>
                 </>
