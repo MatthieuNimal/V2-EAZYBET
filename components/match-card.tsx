@@ -3,6 +3,7 @@
 import { Match } from '@/lib/mock-data';
 import { useBetStore, BetType } from '@/lib/store';
 import { TEAM_IMAGES } from '@/lib/team-images-static';
+import { TEAM_BACKGROUNDS } from '@/lib/team-backgrounds';
 import Image from 'next/image';
 
 interface MatchCardProps {
@@ -22,8 +23,8 @@ export function MatchCard({ match }: MatchCardProps) {
   };
 
   const backgroundImage =
-    TEAM_IMAGES[match.homeTeam]?.banner ||
-    TEAM_IMAGES[match.awayTeam]?.banner ||
+    TEAM_BACKGROUNDS[match.homeTeam] ||
+    TEAM_BACKGROUNDS[match.awayTeam] ||
     'https://images.pexels.com/photos/399187/pexels-photo-399187.jpeg';
 
   return (
@@ -39,7 +40,7 @@ export function MatchCard({ match }: MatchCardProps) {
       <div
         className="absolute inset-0"
         style={{
-          background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.8) 35%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.0) 70%)'
+          background: 'linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.8)), linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.8) 35%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.0) 70%)'
         }}
       />
 
