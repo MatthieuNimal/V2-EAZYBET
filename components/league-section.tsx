@@ -10,8 +10,6 @@ interface LeagueSectionProps {
 export function LeagueSection({ leagueGroup }: LeagueSectionProps) {
   return (
     <div className="mb-8">
-      <h2 className="text-xl font-bold text-white mb-4 px-4">{leagueGroup.league}</h2>
-
       <div className="relative">
         <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#0D1117] to-transparent z-10 pointer-events-none" />
         <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#0D1117] to-transparent z-10 pointer-events-none" />
