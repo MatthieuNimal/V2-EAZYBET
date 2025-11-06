@@ -21,11 +21,27 @@ export async function fetchMatches(status?: string): Promise<Match[]> {
   return data || [];
 }
 
-export async function fetchAvailableMatches(): Promise<Match[]> {
+export async function fetchAvailableMatches(mode?: 'fictif' | 'real'): Promise<Match[]> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
 
-  const matches = await fetchMatches('upcoming');
+  let query = supabase
+    .from('matches')
+    .select('*')
+    .eq('status', 'upcoming')
+    .gt('match_date', new Date().toISOString())
+    .order('match_date', { ascending: true });
+
+  if (mode) {
+    query = query.eq('match_mode', mode);
+  }
+
+  const { data: matches, error } = await query;
+
+  if (error) {
+    console.error('Error fetching matches:', error);
+    return [];
+  }
 
   const { data: userBets } = await supabase
     .from('bets')
@@ -55,7 +71,7 @@ export async function fetchAvailableMatches(): Promise<Match[]> {
     });
   }
 
-  return matches.filter(match => !bettedMatchIds.has(match.id));
+  return (matches || []).filter(match => !bettedMatchIds.has(match.id));
 }
 
 export async function placeBet(matchId: string, amount: number, choice: 'A' | 'Draw' | 'B', currency: 'tokens' | 'diamonds' = 'tokens') {

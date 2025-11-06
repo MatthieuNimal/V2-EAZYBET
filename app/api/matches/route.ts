@@ -5,8 +5,15 @@ import { createErrorResponse, createSuccessResponse } from '@/lib/auth-utils';
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status'); // upcoming, live, finished
+    const status = searchParams.get('status');
     const league = searchParams.get('league');
+    const mode = searchParams.get('mode');
+
+    await supabase
+      .from('matches')
+      .update({ status: 'live' })
+      .eq('status', 'upcoming')
+      .lte('match_date', new Date().toISOString());
 
     let query = supabase
       .from('matches')
@@ -19,6 +26,14 @@ export async function GET(request: NextRequest) {
 
     if (league) {
       query = query.eq('league', league);
+    }
+
+    if (mode) {
+      query = query.eq('match_mode', mode);
+    }
+
+    if (status === 'upcoming') {
+      query = query.gt('match_date', new Date().toISOString());
     }
 
     const { data: matches, error } = await query;

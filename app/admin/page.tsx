@@ -3,12 +3,13 @@
 import { useState, useEffect } from 'react';
 import { fetchMatches } from '@/lib/api-client';
 import type { Match } from '@/lib/supabase-client';
-import { Trophy } from 'lucide-react';
+import { Trophy, RefreshCw } from 'lucide-react';
 
 export default function AdminPage() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
   const [resolving, setResolving] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
     loadMatches();
@@ -74,6 +75,32 @@ export default function AdminPage() {
     }
   }
 
+  async function handleSyncRealMatches() {
+    if (!confirm('Rafraîchir les matchs réels depuis l\'API ?')) return;
+
+    setSyncing(true);
+
+    try {
+      const response = await fetch('/api/matches/sync-real', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(`Synchronisation réussie !\n${data.stats.synced} nouveaux matchs\n${data.stats.updated} matchs mis à jour\n${data.stats.errors} erreurs`);
+        await loadMatches();
+      } else {
+        alert(`Erreur : ${data.error}`);
+      }
+    } catch (error: any) {
+      alert(`Erreur : ${error.message}`);
+    } finally {
+      setSyncing(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto p-4">
@@ -87,14 +114,24 @@ export default function AdminPage() {
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-3 rounded-2xl bg-gradient-to-br from-red-500/20 to-orange-500/20">
-          <Trophy className="w-8 h-8 text-red-400" />
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className="p-3 rounded-2xl bg-gradient-to-br from-red-500/20 to-orange-500/20">
+            <Trophy className="w-8 h-8 text-red-400" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-white">Panel Admin</h1>
+            <p className="text-sm text-white/50">Résoudre les matchs</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-bold text-white">Panel Admin</h1>
-          <p className="text-sm text-white/50">Résoudre les matchs</p>
-        </div>
+        <button
+          onClick={handleSyncRealMatches}
+          disabled={syncing}
+          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <RefreshCw className={`w-5 h-5 ${syncing ? 'animate-spin' : ''}`} />
+          {syncing ? 'Synchronisation...' : 'Rafraîchir les matchs réels'}
+        </button>
       </div>
 
       <div className="mb-8">
