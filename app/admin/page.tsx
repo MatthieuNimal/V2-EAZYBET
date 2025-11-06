@@ -4,12 +4,17 @@ import { useState, useEffect } from 'react';
 import { fetchMatches } from '@/lib/api-client';
 import type { Match } from '@/lib/supabase-client';
 import { Trophy, RefreshCw } from 'lucide-react';
+import { useAuth } from '@/lib/auth-context';
+import { supabase } from '@/lib/supabase-client';
 
 export default function AdminPage() {
+  const { profile } = useAuth();
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
   const [resolving, setResolving] = useState<string | null>(null);
   const [syncing, setSyncing] = useState(false);
+
+  const isAdmin = profile?.role === 'admin';
 
   useEffect(() => {
     loadMatches();
@@ -81,9 +86,18 @@ export default function AdminPage() {
     setSyncing(true);
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        alert('Erreur : Vous devez être connecté');
+        return;
+      }
+
       const response = await fetch('/api/matches/sync-real', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
       });
 
       const data = await response.json();
@@ -124,14 +138,16 @@ export default function AdminPage() {
             <p className="text-sm text-white/50">Résoudre les matchs</p>
           </div>
         </div>
-        <button
-          onClick={handleSyncRealMatches}
-          disabled={syncing}
-          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <RefreshCw className={`w-5 h-5 ${syncing ? 'animate-spin' : ''}`} />
-          {syncing ? 'Synchronisation...' : 'Rafraîchir les matchs réels'}
-        </button>
+        {isAdmin && (
+          <button
+            onClick={handleSyncRealMatches}
+            disabled={syncing}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <RefreshCw className={`w-5 h-5 ${syncing ? 'animate-spin' : ''}`} />
+            {syncing ? 'Synchronisation...' : 'Rafraîchir les matchs réels'}
+          </button>
+        )}
       </div>
 
       <div className="mb-8">

@@ -24,6 +24,28 @@ interface OddsAPIMatch {
 
 export async function POST(request: NextRequest) {
   try {
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader) {
+      return createErrorResponse('Unauthorized', 401);
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return createErrorResponse('Unauthorized', 401);
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (!profile || profile.role !== 'admin') {
+      return createErrorResponse('Access denied: Admin role required', 403);
+    }
+
     const apiKey = process.env.ODDS_API_KEY;
 
     if (!apiKey) {

@@ -20,6 +20,7 @@ export interface Profile {
   diamonds: number;
   total_bets: number;
   won_bets: number;
+  role: 'user' | 'admin';
   created_at: string;
   updated_at: string;
 }
