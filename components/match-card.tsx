@@ -83,6 +83,9 @@ export function MatchCard({ match }: MatchCardProps) {
     if (normalized.includes("torino") || normalized.includes("turin")) return "Torino";
     if (normalized.includes("udinese") || normalized.includes("udine")) return "Udinese";
     if (normalized.includes("parme") || normalized.includes("parma")) return "Parme";
+    if (normalized.includes("fiorentina")) return "Fiorentina";
+    if (normalized.includes("genoa")) return "Genoa";
+    if (normalized.includes("como")) return "Como";
 
     // 🇩🇪 Bundesliga
     if (normalized.includes("leverkusen")) return "Bayer Leverkusen";
@@ -95,6 +98,8 @@ export function MatchCard({ match }: MatchCardProps) {
     if (normalized.includes("stuttgart")) return "Stuttgart";
     if (normalized.includes("union") && normalized.includes("berlin")) return "Union Berlin";
     if (normalized.includes("wolfsburg")) return "VfL Wolfsburg";
+    if (normalized.includes("dortmund")) return "Borussia Dortmund";
+    if (normalized.includes("monchengladbach") || normalized.includes("gladbach")) return "Borussia Monchengladbach";
 
     return name;
   };

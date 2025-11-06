@@ -57,6 +57,9 @@ export const TEAM_BACKGROUNDS: Record<string, string> = {
   "Atalanta": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762459713/Atalanta_pssqjd.png",
   "AS Roma": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762459702/As_Roma_pasdkv.png",
   "AC Milan": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762459690/Ac_milan_zrybwn.png",
+  "Fiorentina": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762462725/Fiorentina_ssfcfu.png",
+  "Genoa": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762462752/Genoa_ckg12p.png",
+  "Como": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762462818/Como_urukxu.png",
 
   // 🇩🇪 Bundesliga
   "Bayer Leverkusen": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762461411/Bayer_Leverkusen_dpxoeu.png",
@@ -68,5 +71,7 @@ export const TEAM_BACKGROUNDS: Record<string, string> = {
   "RB Leipzig": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762461591/RB_Leipzig_yjxduo.png",
   "Stuttgart": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762461601/Stuttgart_gzsicj.png",
   "Union Berlin": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762461614/Union_berlin_amhza6.png",
-  "VfL Wolfsburg": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762461624/Wolfsburg_feownu.png"
+  "VfL Wolfsburg": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762461624/Wolfsburg_feownu.png",
+  "Borussia Dortmund": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762462101/Borussia_Dortmund_sbcbuj.png",
+  "Borussia Monchengladbach": "https://res.cloudinary.com/ddo7omht1/image/upload/v1762462382/Borussia_Monchengladbach_gr3hlp.png"
 };
