@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createErrorResponse, createSuccessResponse } from '@/lib/auth-utils';
-import { getTeamImages } from '@/lib/team-images-static';
+import { getTeamImagesFromWikimedia } from '@/lib/wikimedia-service';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -154,8 +154,8 @@ export async function POST(request: NextRequest) {
     let errorCount = 0;
 
     for (const match of DEMO_MATCHES) {
-      const teamAImages = getTeamImages(match.team_a);
-      const teamBImages = getTeamImages(match.team_b);
+      const teamAImages = await getTeamImagesFromWikimedia(match.team_a, supabase);
+      const teamBImages = await getTeamImagesFromWikimedia(match.team_b, supabase);
 
       const matchDate = new Date();
       matchDate.setHours(matchDate.getHours() + match.hours_from_now);

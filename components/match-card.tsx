@@ -20,7 +20,7 @@ export function MatchCard({ match }: MatchCardProps) {
     return selections.some(s => s.match.id === match.id && s.betType === betType);
   };
 
-  const backgroundImage = 'https://images.pexels.com/photos/274506/pexels-photo-274506.jpeg';
+  const backgroundImage = match.teamABanner || match.teamAStadium || match.teamBBanner || match.teamBStadium || 'https://images.pexels.com/photos/274506/pexels-photo-274506.jpeg';
 
   return (
     <div className="relative rounded-3xl overflow-hidden card-shadow border border-[#30363D] h-[360px]">

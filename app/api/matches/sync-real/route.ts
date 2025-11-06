@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createErrorResponse, createSuccessResponse } from '@/lib/auth-utils';
-import { getTeamImages } from '@/lib/team-images-static';
+import { getTeamImagesFromWikimedia } from '@/lib/wikimedia-service';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -184,8 +184,8 @@ export async function POST(request: NextRequest) {
                 totalUpdatedCount++;
               }
             } else {
-              const teamAImages = getTeamImages(match.home_team);
-              const teamBImages = getTeamImages(match.away_team);
+              const teamAImages = await getTeamImagesFromWikimedia(match.home_team, supabase);
+              const teamBImages = await getTeamImagesFromWikimedia(match.away_team, supabase);
 
               const { error: insertError } = await supabase
                 .from('matches')
