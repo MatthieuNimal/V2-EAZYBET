@@ -22,6 +22,7 @@ export interface Profile {
   won_bets: number;
   role: 'user' | 'admin';
   has_seen_tutorial: boolean;
+  referrer_id: string | null;
   created_at: string;
   updated_at: string;
 }

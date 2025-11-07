@@ -84,36 +84,11 @@ export default function AuthPage() {
           }
         }
 
-        result = await signUp(email, password, username);
+        result = await signUp(email, password, username, finalReferrerId);
 
         if (!result.error && result.data?.user?.id) {
           if (finalReferrerId) {
-            try {
-              console.log('Creating referral with referrer:', finalReferrerId, 'referred:', result.data.user.id);
-              await new Promise(resolve => setTimeout(resolve, 500));
-
-              const response = await fetch('/api/referrals', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  referrerId: finalReferrerId,
-                  referredId: result.data.user.id
-                })
-              });
-
-              if (!response.ok) {
-                const errorData = await response.json();
-                console.error('Failed to create referral:', errorData);
-                setSuccess('Inscription réussie 🎉');
-              } else {
-                const successData = await response.json();
-                console.log('Referral created successfully:', successData);
-                setSuccess('Inscription réussie 🎉 Vous et votre parrain avez reçu 10💎 et êtes maintenant amis !');
-              }
-            } catch (refError) {
-              console.error('Failed to create referral exception:', refError);
-              setSuccess('Inscription réussie 🎉');
-            }
+            setSuccess('Inscription réussie 🎉 Vous et votre parrain avez reçu 10💎 et êtes maintenant amis !');
           } else {
             setSuccess('Inscription réussie 🎉');
           }

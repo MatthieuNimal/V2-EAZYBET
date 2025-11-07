@@ -10,7 +10,7 @@ interface AuthContextType {
   profile: Profile | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-  signUp: (email: string, password: string, username: string) => Promise<{ error: string | null; data?: { user: User | null } }>;
+  signUp: (email: string, password: string, username: string, referrerId?: string | null) => Promise<{ error: string | null; data?: { user: User | null } }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   updateTokensOptimistic: (amount: number) => void;
@@ -117,7 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signUp = async (email: string, password: string, username: string) => {
+  const signUp = async (email: string, password: string, username: string, referrerId?: string | null) => {
     try {
       const { data: existingProfile } = await supabase
         .from('profiles')
@@ -129,13 +129,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error: 'Username already taken' };
       }
 
+      const metadata: any = { username };
+      if (referrerId) {
+        metadata.referrer_id = referrerId;
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: {
-            username,
-          },
+          data: metadata,
         },
       });
 
