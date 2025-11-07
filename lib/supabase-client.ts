@@ -1,57 +1,59 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-let supabaseInstance: SupabaseClient | null = null;
+let browserClient: SupabaseClient | null = null;
 
-function getSupabaseUrl(): string {
-  if (typeof window !== 'undefined') {
-    return process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-  }
-  return process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-}
-
-function getSupabaseKey(): string {
-  if (typeof window !== 'undefined') {
-    return process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-  }
-  return process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-}
-
-function initSupabase(): SupabaseClient {
-  const supabaseUrl = getSupabaseUrl();
-  const supabaseAnonKey = getSupabaseKey();
+export function getSupabaseClient(): SupabaseClient {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
     if (typeof window === 'undefined') {
-      console.warn('Supabase env vars missing during build - returning stub client');
-      return {} as SupabaseClient;
+      throw new Error('Supabase environment variables not available at build time');
     }
-    throw new Error('Missing Supabase environment variables. Please check NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.');
+    throw new Error('Missing Supabase environment variables. Check NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY');
+  }
+
+  if (typeof window !== 'undefined') {
+    if (!browserClient) {
+      browserClient = createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+        },
+      });
+    }
+    return browserClient;
   }
 
   return createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true,
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
     },
   });
 }
 
-export function getSupabaseClient(): SupabaseClient {
-  if (!supabaseInstance) {
-    supabaseInstance = initSupabase();
-  }
-  return supabaseInstance;
-}
-
 export const supabase = new Proxy({} as SupabaseClient, {
-  get(_target, prop) {
+  get(_target, prop, _receiver) {
     const client = getSupabaseClient();
-    const value = client[prop as keyof SupabaseClient];
+    const value = (client as any)[prop];
+
     if (typeof value === 'function') {
-      return value.bind(client);
+      return (...args: any[]) => value.apply(client, args);
     }
+
     return value;
+  },
+
+  has(_target, prop) {
+    try {
+      const client = getSupabaseClient();
+      return prop in client;
+    } catch {
+      return false;
+    }
   }
 });
 
