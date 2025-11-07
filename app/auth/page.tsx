@@ -89,6 +89,8 @@ export default function AuthPage() {
         if (!result.error && result.data?.user?.id) {
           if (finalReferrerId) {
             try {
+              await new Promise(resolve => setTimeout(resolve, 2000));
+
               const response = await fetch('/api/referrals', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -99,17 +101,23 @@ export default function AuthPage() {
               });
 
               if (!response.ok) {
-                console.error('Failed to create referral');
+                const errorData = await response.json();
+                console.error('Failed to create referral:', errorData);
+              } else {
+                const successData = await response.json();
+                console.log('Referral created successfully:', successData);
+                setSuccess('Inscription réussie 🎉 Vous et votre parrain avez reçu 10💎!');
               }
             } catch (refError) {
               console.error('Failed to create referral:', refError);
             }
+          } else {
+            setSuccess('Inscription réussie 🎉');
           }
 
-          setSuccess('Inscription réussie 🎉');
           setTimeout(() => {
             router.push('/');
-          }, 1500);
+          }, 2000);
           return;
         }
       }

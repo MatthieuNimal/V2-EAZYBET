@@ -156,11 +156,36 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Failed to create referral', 500);
     }
 
-    console.log(`Referral created successfully! Referrer ${referrerId} and referred ${referredId} both received ${REFERRAL_REWARD} diamonds`);
+    const { data: existingFriendship, error: friendCheckError } = await supabase
+      .from('friends')
+      .select('id')
+      .or(`and(user_id.eq.${referrerId},friend_id.eq.${referredId}),and(user_id.eq.${referredId},friend_id.eq.${referrerId})`)
+      .maybeSingle();
+
+    if (friendCheckError) {
+      console.error('Check existing friendship error:', friendCheckError);
+    }
+
+    if (!existingFriendship) {
+      const { error: friendError } = await supabase
+        .from('friends')
+        .insert({
+          user_id: referrerId,
+          friend_id: referredId
+        });
+
+      if (friendError) {
+        console.error('Failed to create friendship:', friendError);
+      } else {
+        console.log(`Friendship created between ${referrerId} and ${referredId}`);
+      }
+    }
+
+    console.log(`Referral created successfully! Referrer ${referrerId} and referred ${referredId} both received ${REFERRAL_REWARD} diamonds and became friends`);
 
     return createSuccessResponse({
       referral: data,
-      message: `Referral reward granted! Both users received ${REFERRAL_REWARD} 💎`
+      message: `Referral reward granted! Both users received ${REFERRAL_REWARD} 💎 and are now friends!`
     });
 
   } catch (error: any) {
