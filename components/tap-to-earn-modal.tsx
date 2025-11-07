@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useAuth } from '@/lib/auth-context';
 import { earnTokens } from '@/lib/api-client';
@@ -24,11 +24,6 @@ interface FlyingCoin {
   startY: number;
 }
 
-interface ActiveTouch {
-  id: number;
-  startTime: number;
-}
-
 export function TapToEarnModal({ open, onOpenChange }: TapToEarnModalProps) {
   const [tapCount, setTapCount] = useState(0);
   const [activeTaps, setActiveTaps] = useState(0);
@@ -39,148 +34,40 @@ export function TapToEarnModal({ open, onOpenChange }: TapToEarnModalProps) {
   const [showButton, setShowButton] = useState(true);
   const { refreshProfile, updateTokensOptimistic, profile } = useAuth();
 
-  const tapAreaRef = useRef<HTMLDivElement>(null);
-  const activeTouchesRef = useRef<Map<number, ActiveTouch>>(new Map());
-  const tapIdCounter = useRef<number>(0);
-  const supportsHaptics = useRef<boolean>(false);
+  const handleTap = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (activeTaps >= 3) return;
 
-  useEffect(() => {
-    supportsHaptics.current = 'vibrate' in navigator;
-  }, []);
+    setTapCount((prev) => prev + 1);
+    setActiveTaps((prev) => prev + 1);
+    setRotationKey((prev) => prev + 1);
 
-  const triggerHapticFeedback = useCallback(() => {
-    if (supportsHaptics.current) {
-      try {
-        navigator.vibrate(10);
-      } catch (error) {
-        console.warn('Haptic feedback not available:', error);
-      }
-    }
-  }, []);
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
 
-  const createFloatingText = useCallback((x: number, y: number, tapId: number) => {
     const newFloatingText: FloatingText = {
-      id: tapId,
+      id: Date.now() + Math.random(),
       x,
       y,
     };
 
     setFloatingTexts((prev) => [...prev, newFloatingText]);
 
-    setTimeout(() => {
-      setFloatingTexts((prev) => prev.filter((text) => text.id !== tapId));
-    }, 800);
-  }, []);
-
-  const createRipple = useCallback((x: number, y: number, element: HTMLElement) => {
     const ripple = document.createElement('div');
     ripple.className = 'tap-ripple';
     ripple.style.left = `${x}px`;
     ripple.style.top = `${y}px`;
-    element.appendChild(ripple);
+    e.currentTarget.appendChild(ripple);
     setTimeout(() => ripple.remove(), 600);
-  }, []);
 
-  const processTap = useCallback((x: number, y: number) => {
-    const tapId = ++tapIdCounter.current;
-
-    setTapCount((prev) => prev + 1);
-    setActiveTaps((prev) => Math.min(prev + 1, 3));
-    setRotationKey((prev) => prev + 1);
-
-    createFloatingText(x, y, tapId);
-
-    if (tapAreaRef.current) {
-      createRipple(x, y, tapAreaRef.current);
-    }
-
-    triggerHapticFeedback();
+    setTimeout(() => {
+      setFloatingTexts((prev) => prev.filter((text) => text.id !== newFloatingText.id));
+    }, 800);
 
     setTimeout(() => {
       setActiveTaps((prev) => Math.max(0, prev - 1));
     }, 300);
-  }, [createFloatingText, createRipple, triggerHapticFeedback]);
-
-  const handleTap = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    if (isCollecting) return;
-
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    processTap(x, y);
   };
-
-  const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    if (isCollecting) return;
-
-    const rect = e.currentTarget.getBoundingClientRect();
-    const changedTouches = Array.from(e.changedTouches);
-
-    for (const touch of changedTouches) {
-      const touchId = touch.identifier;
-
-      if (activeTouchesRef.current.size >= 3) {
-        break;
-      }
-
-      if (!activeTouchesRef.current.has(touchId)) {
-        activeTouchesRef.current.set(touchId, {
-          id: touchId,
-          startTime: Date.now(),
-        });
-
-        const x = touch.clientX - rect.left;
-        const y = touch.clientY - rect.top;
-
-        requestAnimationFrame(() => {
-          processTap(x, y);
-        });
-      }
-    }
-  }, [processTap, isCollecting]);
-
-  const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
-    e.preventDefault();
-  }, []);
-
-  const handleTouchEnd = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
-    e.preventDefault();
-
-    const changedTouches = Array.from(e.changedTouches);
-
-    requestAnimationFrame(() => {
-      for (const touch of changedTouches) {
-        activeTouchesRef.current.delete(touch.identifier);
-      }
-    });
-  }, []);
-
-  const handleTouchCancel = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
-    e.preventDefault();
-
-    const changedTouches = Array.from(e.changedTouches);
-
-    requestAnimationFrame(() => {
-      for (const touch of changedTouches) {
-        activeTouchesRef.current.delete(touch.identifier);
-      }
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!open) {
-      activeTouchesRef.current.clear();
-      setTapCount(0);
-      setActiveTaps(0);
-      setFloatingTexts([]);
-      setFlyingCoins([]);
-      setIsCollecting(false);
-      setShowButton(true);
-    }
-  }, [open]);
 
   const handleCollect = async () => {
     if (isCollecting || tapCount === 0) return;
@@ -268,18 +155,10 @@ export function TapToEarnModal({ open, onOpenChange }: TapToEarnModalProps) {
           </motion.div>
 
           <motion.div
-            ref={tapAreaRef}
             onClick={handleTap}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-            onTouchCancel={handleTouchCancel}
             className="relative mx-auto w-56 h-56 rounded-full cursor-pointer select-none flex items-center justify-center overflow-visible"
             style={{
               userSelect: 'none',
-              WebkitUserSelect: 'none',
-              touchAction: 'none',
-              WebkitTouchCallout: 'none',
             }}
             whileHover={{
               scale: 1.02,
@@ -371,58 +250,8 @@ export function TapToEarnModal({ open, onOpenChange }: TapToEarnModalProps) {
               ease: 'easeInOut',
             }}
           >
-            {activeTaps === 0 && 'Tapez avec jusqu\'à 3 doigts pour gagner plus vite'}
-            {activeTaps === 1 && 'Excellent ! Essayez avec 2 ou 3 doigts 🔥'}
-            {activeTaps === 2 && 'Incroyable ! Ajoutez un 3ème doigt ! 🚀'}
-            {activeTaps === 3 && 'MAXIMUM ATTEINT ! 3 DOIGTS 💥'}
+            Tapez sur le logo pour gagner des jetons
           </motion.p>
-
-          <AnimatePresence>
-            {activeTaps > 0 && (
-              <motion.div
-                className="text-center mt-3"
-                initial={{ opacity: 0, scale: 0.8, y: -10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.8, y: -10 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-              >
-                <div
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 ${
-                    activeTaps === 3
-                      ? 'bg-gradient-to-r from-yellow-500/30 to-orange-500/30 border-yellow-500/50 shadow-lg shadow-yellow-500/30'
-                      : 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-purple-500/30'
-                  }`}
-                >
-                  <div className="flex gap-1">
-                    {[...Array(3)].map((_, i) => (
-                      <motion.div
-                        key={i}
-                        className={`w-2 h-2 rounded-full ${
-                          i < activeTaps
-                            ? activeTaps === 3 ? 'bg-yellow-400' : 'bg-purple-400'
-                            : 'bg-slate-600'
-                        }`}
-                        initial={{ scale: 0 }}
-                        animate={{
-                          scale: i < activeTaps ? [1, 1.3, 1] : 0.8,
-                        }}
-                        transition={{
-                          duration: 0.2,
-                          repeat: i < activeTaps ? Infinity : 0,
-                          repeatDelay: 0.5
-                        }}
-                      />
-                    ))}
-                  </div>
-                  <p className={`font-bold text-xs ${
-                    activeTaps === 3 ? 'text-yellow-300' : 'text-purple-300'
-                  }`}>
-                    {activeTaps}/3 doigt{activeTaps > 1 ? 's' : ''}
-                  </p>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
 
           {tapCount > 0 && showButton && (
             <motion.div
