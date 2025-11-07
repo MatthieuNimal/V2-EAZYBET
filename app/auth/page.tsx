@@ -9,9 +9,12 @@ export default function AuthPage() {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [username, setUsername] = useState('');
+  const [referralLink, setReferralLink] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [resetSuccess, setResetSuccess] = useState(false);
@@ -29,10 +32,24 @@ export default function AuthPage() {
     }
   }, [searchParams]);
 
+  const extractReferrerIdFromLink = (link: string): string | null => {
+    if (!link.trim()) return null;
+
+    try {
+      const url = new URL(link);
+      const refParam = url.searchParams.get('ref');
+      return refParam;
+    } catch {
+      const refMatch = link.match(/[?&]ref=([a-f0-9-]+)/i);
+      return refMatch ? refMatch[1] : null;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+    setSuccess('');
 
     try {
       let result;
@@ -44,28 +61,67 @@ export default function AuthPage() {
           setIsLoading(false);
           return;
         }
+
+        if (password !== confirmPassword) {
+          setError('Les mots de passe ne correspondent pas');
+          setIsLoading(false);
+          return;
+        }
+
+        if (password.length < 6) {
+          setError('Le mot de passe doit contenir au moins 6 caractères');
+          setIsLoading(false);
+          return;
+        }
+
+        let finalReferrerId = referrerId;
+        if (!finalReferrerId && referralLink.trim()) {
+          finalReferrerId = extractReferrerIdFromLink(referralLink);
+          if (!finalReferrerId) {
+            setError('Lien de parrainage invalide');
+            setIsLoading(false);
+            return;
+          }
+        }
+
         result = await signUp(email, password, username);
 
-        if (!result.error && result.data?.user?.id && referrerId) {
-          try {
-            await fetch('/api/referrals', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                referrerId,
-                referredId: result.data.user.id
-              })
-            });
-          } catch (refError) {
-            console.error('Failed to create referral:', refError);
+        if (!result.error && result.data?.user?.id) {
+          if (finalReferrerId) {
+            try {
+              const response = await fetch('/api/referrals', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  referrerId: finalReferrerId,
+                  referredId: result.data.user.id
+                })
+              });
+
+              if (!response.ok) {
+                console.error('Failed to create referral');
+              }
+            } catch (refError) {
+              console.error('Failed to create referral:', refError);
+            }
           }
+
+          setSuccess('Inscription réussie 🎉');
+          setTimeout(() => {
+            router.push('/');
+          }, 1500);
+          return;
         }
       }
 
       if (result.error) {
-        setError(result.error);
+        if (result.error.includes('already taken') || result.error.includes('déjà pris')) {
+          setError('Ce pseudo est déjà pris');
+        } else {
+          setError(result.error);
+        }
         setIsLoading(false);
-      } else {
+      } else if (mode === 'login') {
         router.push('/');
       }
     } catch (err: any) {
@@ -197,6 +253,47 @@ export default function AuthPage() {
                 className="w-full px-4 py-3 bg-[#0D1117] border border-[#30363D] rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-[#C1322B] focus:ring-2 focus:ring-[#C1322B]/20 transition-all"
               />
             </div>
+
+            {mode === 'signup' && (
+              <>
+                <div>
+                  <label htmlFor="confirmPassword" className="block text-white font-bold mb-2 text-sm">
+                    Confirmer le mot de passe
+                  </label>
+                  <input
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    className="w-full px-4 py-3 bg-[#0D1117] border border-[#30363D] rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-[#C1322B] focus:ring-2 focus:ring-[#C1322B]/20 transition-all"
+                  />
+                </div>
+
+                {!referrerId && (
+                  <div>
+                    <label htmlFor="referralLink" className="block text-white font-bold mb-2 text-sm">
+                      Lien de parrainage <span className="text-white/50 font-normal">(optionnel)</span>
+                    </label>
+                    <input
+                      id="referralLink"
+                      type="text"
+                      value={referralLink}
+                      onChange={(e) => setReferralLink(e.target.value)}
+                      placeholder="https://eazybetcoin.app/auth?ref=..."
+                      className="w-full px-4 py-3 bg-[#0D1117] border border-[#30363D] rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-[#C1322B] focus:ring-2 focus:ring-[#C1322B]/20 transition-all"
+                    />
+                  </div>
+                )}
+              </>
+            )}
+
+            {success && (
+              <div className="bg-green-500/10 border border-green-500/50 rounded-lg p-3 text-green-400 text-sm font-semibold text-center">
+                {success}
+              </div>
+            )}
 
             {error && (
               <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-3 text-red-400 text-sm">
