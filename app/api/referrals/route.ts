@@ -90,14 +90,35 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Invalid referrer', 400);
     }
 
-    const { data: referred, error: referredError } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('id', referredId)
-      .maybeSingle();
+    let referred = null;
+    let retries = 0;
+    const maxRetries = 5;
 
-    if (referredError || !referred) {
-      console.error('Referred user not found:', referredError);
+    while (!referred && retries < maxRetries) {
+      const { data, error: referredError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', referredId)
+        .maybeSingle();
+
+      if (data) {
+        referred = data;
+        break;
+      }
+
+      if (referredError) {
+        console.error('Referred user lookup error:', referredError);
+      }
+
+      retries++;
+      if (retries < maxRetries) {
+        console.log(`Waiting for referred user profile to be created (attempt ${retries}/${maxRetries})...`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+
+    if (!referred) {
+      console.error('Referred user not found after retries');
       return createErrorResponse('Invalid referred user', 400);
     }
 
