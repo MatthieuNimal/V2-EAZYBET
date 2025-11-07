@@ -21,6 +21,7 @@ export interface Profile {
   total_bets: number;
   won_bets: number;
   role: 'user' | 'admin';
+  has_seen_tutorial: boolean;
   created_at: string;
   updated_at: string;
 }

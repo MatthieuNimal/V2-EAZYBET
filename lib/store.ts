@@ -215,3 +215,13 @@ export const useBadgeStore = create<BadgeState>()(
     }
   )
 );
+
+interface TutorialState {
+  showTutorial: boolean;
+  setShowTutorial: (show: boolean) => void;
+}
+
+export const useTutorialStore = create<TutorialState>((set) => ({
+  showTutorial: false,
+  setShowTutorial: (show) => set({ showTutorial: show }),
+}));

@@ -8,21 +8,24 @@ import { BetSlip } from '@/components/bet-slip';
 import { useAuth } from '@/lib/auth-context';
 import { fetchMatches, fetchAvailableMatches, getUserBets } from '@/lib/api-client';
 import type { Match } from '@/lib/supabase-client';
-import { useNavigationStore, useBadgeStore } from '@/lib/store';
+import { useNavigationStore, useBadgeStore, useTutorialStore } from '@/lib/store';
 import { ActiveBetCard } from '@/components/active-bet-card';
 import { FinishedBetCard } from '@/components/finished-bet-card';
 import { ActiveComboBetCard } from '@/components/active-combo-bet-card';
 import { FinishedComboBetCard } from '@/components/finished-combo-bet-card';
+import { TutorialModal } from '@/components/tutorial-modal';
+import { supabase } from '@/lib/supabase-client';
 
 export default function Home() {
   const { activeHomeTab: activeTab, setActiveHomeTab: setActiveTab } = useNavigationStore();
   const { hasNewBet, setHasNewBet } = useBadgeStore();
+  const { showTutorial, setShowTutorial } = useTutorialStore();
   const [mounted, setMounted] = useState(false);
   const [matches, setMatches] = useState<Match[]>([]);
   const [activeBets, setActiveBets] = useState<any[]>([]);
   const [finishedBets, setFinishedBets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const { user, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -34,6 +37,42 @@ export default function Home() {
       router.push('/auth');
     }
   }, [user, authLoading, router]);
+
+  useEffect(() => {
+    if (profile && !profile.has_seen_tutorial) {
+      setShowTutorial(true);
+    }
+  }, [profile, setShowTutorial]);
+
+  const handleTutorialComplete = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        console.error('No session token available');
+        setShowTutorial(false);
+        return;
+      }
+
+      const response = await fetch('/api/user/complete-tutorial', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (response.ok) {
+        setShowTutorial(false);
+        window.location.reload();
+      } else {
+        console.error('Failed to complete tutorial');
+        setShowTutorial(false);
+      }
+    } catch (error) {
+      console.error('Tutorial completion error:', error);
+      setShowTutorial(false);
+    }
+  };
 
   useEffect(() => {
     async function loadMatches() {
@@ -277,14 +316,18 @@ export default function Home() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="px-4">
-        <TabsMatchs activeTab={activeTab} onTabChange={setActiveTab} />
+    <>
+      <TutorialModal isOpen={showTutorial} onComplete={handleTutorialComplete} />
+
+      <div className="max-w-2xl mx-auto">
+        <div className="px-4">
+          <TabsMatchs activeTab={activeTab} onTabChange={setActiveTab} />
+        </div>
+
+        {renderContent()}
+
+        <BetSlip />
       </div>
-
-      {renderContent()}
-
-      <BetSlip />
-    </div>
+    </>
   );
 }

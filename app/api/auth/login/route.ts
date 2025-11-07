@@ -35,6 +35,11 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Échec de la connexion', 500);
     }
 
+    // Check if email is confirmed
+    if (!data.user.email_confirmed_at) {
+      return createErrorResponse('⚠️ Confirme ton adresse email avant de pouvoir te connecter. Vérifie ta boîte mail.', 403);
+    }
+
     // Get user profile
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
@@ -54,6 +59,7 @@ export async function POST(request: NextRequest) {
         username: profile?.username,
         tokens: profile?.tokens,
         diamonds: profile?.diamonds,
+        has_seen_tutorial: profile?.has_seen_tutorial || false,
       },
       session: data.session,
       access_token: data.session.access_token,
