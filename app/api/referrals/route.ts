@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
 
     const { data: referrer, error: referrerError } = await supabase
       .from('profiles')
-      .select('id')
+      .select('id, diamonds')
       .eq('id', referrerId)
       .maybeSingle();
 
@@ -90,24 +90,77 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Invalid referrer', 400);
     }
 
+    const { data: referred, error: referredError } = await supabase
+      .from('profiles')
+      .select('id, diamonds')
+      .eq('id', referredId)
+      .maybeSingle();
+
+    if (referredError || !referred) {
+      console.error('Referred user not found:', referredError);
+      return createErrorResponse('Invalid referred user', 400);
+    }
+
+    const REFERRAL_REWARD = 10;
+
+    const { error: referrerUpdateError } = await supabase
+      .from('profiles')
+      .update({
+        diamonds: (referrer.diamonds || 0) + REFERRAL_REWARD
+      })
+      .eq('id', referrerId);
+
+    if (referrerUpdateError) {
+      console.error('Failed to reward referrer:', referrerUpdateError);
+      return createErrorResponse('Failed to reward referrer', 500);
+    }
+
+    const { error: referredUpdateError } = await supabase
+      .from('profiles')
+      .update({
+        diamonds: (referred.diamonds || 0) + REFERRAL_REWARD
+      })
+      .eq('id', referredId);
+
+    if (referredUpdateError) {
+      console.error('Failed to reward referred user:', referredUpdateError);
+      await supabase
+        .from('profiles')
+        .update({
+          diamonds: referrer.diamonds
+        })
+        .eq('id', referrerId);
+      return createErrorResponse('Failed to reward referred user', 500);
+    }
+
     const { data, error } = await supabase
       .from('referrals')
       .insert({
         referrer_id: referrerId,
         referred_id: referredId,
-        rewarded: false
+        rewarded: true
       })
       .select()
       .single();
 
     if (error) {
       console.error('Create referral error:', error);
+      await supabase
+        .from('profiles')
+        .update({ diamonds: referrer.diamonds })
+        .eq('id', referrerId);
+      await supabase
+        .from('profiles')
+        .update({ diamonds: referred.diamonds })
+        .eq('id', referredId);
       return createErrorResponse('Failed to create referral', 500);
     }
 
+    console.log(`Referral created successfully! Referrer ${referrerId} and referred ${referredId} both received ${REFERRAL_REWARD} diamonds`);
+
     return createSuccessResponse({
       referral: data,
-      message: 'Referral reward granted! Both users received 10 💎'
+      message: `Referral reward granted! Both users received ${REFERRAL_REWARD} 💎`
     });
 
   } catch (error: any) {
