@@ -1,64 +1,63 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-let clientInstance: SupabaseClient | null = null;
+let browserClient: SupabaseClient | null = null;
+let serverClient: SupabaseClient | null = null;
 
-function initClient(): SupabaseClient | null {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-
+function createBrowserClient(): SupabaseClient {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.error('Missing Supabase environment variables');
-    return null;
+    throw new Error('Missing Supabase environment variables');
   }
 
-  try {
-    return createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-      },
-    });
-  } catch (error) {
-    console.error('Failed to create Supabase client:', error);
-    return null;
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+  });
+}
+
+function createServerClient(): SupabaseClient {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing Supabase environment variables');
   }
+
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  });
 }
 
 export function getSupabaseClient(): SupabaseClient {
-  if (!clientInstance) {
-    clientInstance = initClient();
+  if (typeof window !== 'undefined') {
+    if (!browserClient) {
+      browserClient = createBrowserClient();
+    }
+    return browserClient;
+  } else {
+    if (!serverClient) {
+      serverClient = createServerClient();
+    }
+    return serverClient;
   }
-
-  if (!clientInstance) {
-    throw new Error('Supabase client is not available. Check environment variables.');
-  }
-
-  return clientInstance;
-}
-
-if (typeof window !== 'undefined') {
-  clientInstance = initClient();
 }
 
 export const supabase = new Proxy({} as SupabaseClient, {
   get(_target, prop) {
-    if (!clientInstance && typeof window !== 'undefined') {
-      clientInstance = initClient();
-    }
-
-    if (!clientInstance) {
-      throw new Error('Supabase client not initialized');
-    }
-
-    const value = (clientInstance as any)[prop];
+    const client = getSupabaseClient();
+    const value = (client as any)[prop];
 
     if (typeof value === 'function') {
-      return value.bind(clientInstance);
+      return value.bind(client);
     }
 
     return value;
