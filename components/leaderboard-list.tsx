@@ -54,11 +54,17 @@ export function LeaderboardList() {
         setTotal(data.data.total || 0);
 
         console.log('New entries:', newEntries, 'Total:', data.data.total);
+        console.log('Is array?', Array.isArray(newEntries), 'Length:', newEntries.length);
 
         if (isLoadMore) {
-          setEntries((prev) => [...prev, ...newEntries]);
+          setEntries((prev) => {
+            const updated = [...prev, ...newEntries];
+            console.log('Updated entries (loadMore):', updated);
+            return updated;
+          });
           setOffset(currentOffset + newEntries.length);
         } else {
+          console.log('Setting initial entries:', newEntries);
           setEntries(newEntries);
           setOffset(newEntries.length);
         }
@@ -93,8 +99,18 @@ export function LeaderboardList() {
   useEffect(() => {
     console.log('LeaderboardList mounted, profile:', profile);
     loadLeaderboard();
-    loadUserRank();
-  }, [profile]);
+  }, []);
+
+  useEffect(() => {
+    if (profile?.id) {
+      console.log('Loading user rank for:', profile.id);
+      loadUserRank();
+    }
+  }, [profile?.id]);
+
+  useEffect(() => {
+    console.log('Entries state changed:', entries, 'Length:', entries.length);
+  }, [entries]);
 
   useEffect(() => {
     if (observerRef.current) {
