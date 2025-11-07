@@ -1,59 +1,67 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-let browserClient: SupabaseClient | null = null;
+let clientInstance: SupabaseClient | null = null;
 
-export function getSupabaseClient(): SupabaseClient {
+function initClient(): SupabaseClient | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    if (typeof window === 'undefined') {
-      throw new Error('Supabase environment variables not available at build time');
-    }
-    throw new Error('Missing Supabase environment variables. Check NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY');
+    console.error('Missing Supabase environment variables');
+    return null;
   }
 
-  if (typeof window !== 'undefined') {
-    if (!browserClient) {
-      browserClient = createClient(supabaseUrl, supabaseAnonKey, {
-        auth: {
-          persistSession: true,
-          autoRefreshToken: true,
-          detectSessionInUrl: true,
-        },
-      });
-    }
-    return browserClient;
+  try {
+    return createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
+    });
+  } catch (error) {
+    console.error('Failed to create Supabase client:', error);
+    return null;
+  }
+}
+
+export function getSupabaseClient(): SupabaseClient {
+  if (!clientInstance) {
+    clientInstance = initClient();
   }
 
-  return createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-      detectSessionInUrl: false,
-    },
-  });
+  if (!clientInstance) {
+    throw new Error('Supabase client is not available. Check environment variables.');
+  }
+
+  return clientInstance;
+}
+
+if (typeof window !== 'undefined') {
+  clientInstance = initClient();
 }
 
 export const supabase = new Proxy({} as SupabaseClient, {
-  get(_target, prop, _receiver) {
-    const client = getSupabaseClient();
-    const value = (client as any)[prop];
+  get(_target, prop) {
+    if (!clientInstance && typeof window !== 'undefined') {
+      clientInstance = initClient();
+    }
+
+    if (!clientInstance) {
+      throw new Error('Supabase client not initialized');
+    }
+
+    const value = (clientInstance as any)[prop];
 
     if (typeof value === 'function') {
-      return (...args: any[]) => value.apply(client, args);
+      return value.bind(clientInstance);
     }
 
     return value;
-  },
-
-  has(_target, prop) {
-    try {
-      const client = getSupabaseClient();
-      return prop in client;
-    } catch {
-      return false;
-    }
   }
 });
 
