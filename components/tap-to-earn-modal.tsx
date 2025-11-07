@@ -37,6 +37,11 @@ export function TapToEarnModal({ open, onOpenChange }: TapToEarnModalProps) {
   const handleTap = (e: React.MouseEvent<HTMLDivElement>) => {
     if (activeTaps >= 3) return;
 
+    // Vibration sur mobile
+    if (typeof window !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate(50);
+    }
+
     setTapCount((prev) => prev + 1);
     setActiveTaps((prev) => prev + 1);
     setRotationKey((prev) => prev + 1);
