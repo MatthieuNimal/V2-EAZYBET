@@ -47,14 +47,22 @@ export function LeaderboardList() {
       const response = await fetch(`/api/leaderboard?limit=${LIMIT}&offset=${currentOffset}`);
       const data = await response.json();
 
-      console.log('Leaderboard API response:', data);
+      console.log('[Leaderboard] Raw API response:', JSON.stringify(data, null, 2));
+      console.log('[Leaderboard] data.success:', data.success);
+      console.log('[Leaderboard] data.data:', data.data);
+      console.log('[Leaderboard] data.data?.leaderboard:', data.data?.leaderboard);
 
       if (data.success && data.data) {
         const newEntries = data.data.leaderboard || [];
         setTotal(data.data.total || 0);
 
-        console.log('New entries:', newEntries, 'Total:', data.data.total);
-        console.log('Is array?', Array.isArray(newEntries), 'Length:', newEntries.length);
+        console.log('[Leaderboard] Loaded entries:', newEntries);
+        console.log('[Leaderboard] Total players:', data.data.total);
+        console.log('[Leaderboard] Is array?', Array.isArray(newEntries), 'Length:', newEntries.length);
+
+        if (newEntries.length === 0) {
+          console.warn('[Leaderboard] WARNING: API returned 0 entries but total is', data.data.total);
+        }
 
         if (isLoadMore) {
           setEntries((prev) => {
@@ -71,7 +79,8 @@ export function LeaderboardList() {
 
         setHasMore(newEntries.length === LIMIT && currentOffset + newEntries.length < data.data.total);
       } else {
-        console.error('Invalid API response:', data);
+        console.error('[Leaderboard] Invalid API response:', data);
+        console.error('[Leaderboard] Expected format: { success: true, data: { leaderboard: [...], total: number } }');
       }
     } catch (error) {
       console.error('Error loading leaderboard:', error);
@@ -174,7 +183,7 @@ export function LeaderboardList() {
 
   return (
     <div className="space-y-6">
-      {userRank && (
+      {userRank && entries.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -282,7 +291,14 @@ export function LeaderboardList() {
         {entries.length === 0 && !loading && (
           <div className="text-center py-20 text-slate-500">
             <Trophy className="w-16 h-16 mx-auto mb-4 text-slate-600" />
-            <p>Aucun joueur dans le classement pour le moment</p>
+            {userRank ? (
+              <div>
+                <p className="mb-2">Vous êtes le seul joueur inscrit !</p>
+                <p className="text-sm">Invitez vos amis pour commencer à jouer</p>
+              </div>
+            ) : (
+              <p>Aucun joueur dans le classement pour le moment</p>
+            )}
           </div>
         )}
       </div>
