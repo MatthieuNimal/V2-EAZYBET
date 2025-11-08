@@ -245,12 +245,12 @@ export function BetSlip() {
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   placeholder="Entrez votre mise"
-                  min="10"
+                  min={currency === 'tokens' ? '10' : '1'}
                   className="flex-1 bg-transparent text-white text-lg font-bold focus:outline-none"
                 />
               </div>
               <p className="text-white/50 text-xs">
-                Solde disponible : {availableBalance.toFixed(0)} {currency === 'tokens' ? 'jetons' : 'diamants'} (min. 10)
+                Solde disponible : {availableBalance.toFixed(0)} {currency === 'tokens' ? 'jetons' : 'diamants'} (min. {currency === 'tokens' ? '10' : '1'})
               </p>
             </div>
 

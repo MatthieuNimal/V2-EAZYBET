@@ -28,8 +28,9 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Invalid currency. Must be tokens or diamonds', 400);
     }
 
-    if (amount < 10) {
-      return createErrorResponse('Minimum bet amount is 10', 400);
+    const minAmount = currency === 'tokens' ? 10 : 1;
+    if (amount < minAmount) {
+      return createErrorResponse(`Minimum bet amount is ${minAmount}`, 400);
     }
 
     // Get match details

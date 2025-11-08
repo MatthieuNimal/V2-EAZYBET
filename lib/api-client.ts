@@ -79,8 +79,9 @@ export async function fetchAvailableMatches(mode?: 'fictif' | 'real'): Promise<M
 }
 
 export async function placeBet(matchId: string, amount: number, choice: 'A' | 'Draw' | 'B', currency: 'tokens' | 'diamonds' = 'tokens') {
-  if (amount < 10) {
-    throw new Error('Mise minimum : 10');
+  const minAmount = currency === 'tokens' ? 10 : 1;
+  if (amount < minAmount) {
+    throw new Error(`Mise minimum : ${minAmount}`);
   }
 
   const { data: match } = await supabase
@@ -179,8 +180,9 @@ export async function placeCombobet(
   amount: number,
   currency: 'tokens' | 'diamonds' = 'tokens'
 ) {
-  if (amount < 10) {
-    throw new Error('Mise minimum : 10');
+  const minAmount = currency === 'tokens' ? 10 : 1;
+  if (amount < minAmount) {
+    throw new Error(`Mise minimum : ${minAmount}`);
   }
 
   if (selections.length < 2) {
