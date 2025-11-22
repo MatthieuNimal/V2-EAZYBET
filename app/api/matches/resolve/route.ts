@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { resolveMatchBets, simulateMatchResult } from '@/lib/bet-resolution';
+import { resolveMatchBets, simulateMatchResult } from '@/lib/bet-resolution-service';
 
 export async function POST(request: NextRequest) {
   try {

@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { supabase } from '@/lib/supabase-client';
+import { supabaseServer } from '@/lib/supabase/server';
 import { createErrorResponse, createSuccessResponse } from '@/lib/auth-utils';
 
 export async function GET(request: NextRequest) {
@@ -9,13 +9,13 @@ export async function GET(request: NextRequest) {
     const league = searchParams.get('league');
     const mode = searchParams.get('mode');
 
-    await supabase
+    await supabaseServer
       .from('matches')
       .update({ status: 'live' })
       .eq('status', 'upcoming')
       .lte('match_date', new Date().toISOString());
 
-    let query = supabase
+    let query = supabaseServer
       .from('matches')
       .select('*')
       .order('match_date', { ascending: true });
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create match
-    const { data: match, error } = await supabase
+    const { data: match, error } = await supabaseServer
       .from('matches')
       .insert({
         team_a,

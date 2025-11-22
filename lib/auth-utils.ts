@@ -1,4 +1,4 @@
-import { supabase } from './supabase-client';
+import { supabaseServer } from './supabase/server';
 import { NextRequest } from 'next/server';
 
 export async function getAuthUser(request: NextRequest) {
@@ -10,7 +10,7 @@ export async function getAuthUser(request: NextRequest) {
 
   const token = authHeader.replace('Bearer ', '');
 
-  const { data: { user }, error } = await supabase.auth.getUser(token);
+  const { data: { user }, error } = await supabaseServer.auth.getUser(token);
 
   if (error || !user) {
     return { user: null, error: 'Invalid or expired token' };

@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { supabase } from '@/lib/supabase-client';
+import { supabaseServer } from '@/lib/supabase/server';
 import { createErrorResponse, createSuccessResponse } from '@/lib/auth-utils';
 
 export const dynamic = 'force-dynamic';
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
 
     if (userId && !friendsOnly) {
       console.log('[Leaderboard API] Fetching user rank for:', userId);
-      const { data: userRank, error: rankError } = await supabase
+      const { data: userRank, error: rankError } = await supabaseServer
         .rpc('get_user_rank', { user_id_input: userId });
 
       if (rankError) {
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
 
     if (friendsOnly && userId) {
       console.log('[Leaderboard API] Using friends leaderboard');
-      const result = await supabase
+      const result = await supabaseServer
         .rpc('get_friends_leaderboard', {
           user_id_input: userId,
           limit_input: limit,
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
       error = result.error;
     } else {
       console.log('[Leaderboard API] Using global leaderboard');
-      const result = await supabase
+      const result = await supabaseServer
         .rpc('get_leaderboard', {
           limit_input: limit,
           offset_input: offset
@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
 
     console.log('[Leaderboard API] Processed leaderboard entries:', leaderboard.length);
 
-    const { count, error: countError } = await supabase
+    const { count, error: countError } = await supabaseServer
       .from('profiles')
       .select('*', { count: 'exact', head: true });
 

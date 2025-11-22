@@ -1,6 +1,18 @@
-import { supabase } from './supabase-client';
+import { getSupabaseAdminClient } from './supabase/admin';
 
-export async function resolveMatchBets(matchId: string, result: 'A' | 'Draw' | 'B') {
+export interface BetResolutionResult {
+  processed: number;
+  message: string;
+  matchId?: string;
+  result?: 'A' | 'Draw' | 'B';
+}
+
+export async function resolveMatchBets(
+  matchId: string,
+  result: 'A' | 'Draw' | 'B'
+): Promise<BetResolutionResult> {
+  const supabase = getSupabaseAdminClient();
+
   const { data: bets, error: betsError } = await supabase
     .from('bets')
     .select('*, profiles!inner(id, tokens, diamonds, won_bets)')
@@ -8,7 +20,7 @@ export async function resolveMatchBets(matchId: string, result: 'A' | 'Draw' | '
     .is('is_win', null);
 
   if (betsError || !bets || bets.length === 0) {
-    return { processed: 0, message: 'No bets to process' };
+    return { processed: 0, message: 'No bets to process', matchId, result };
   }
 
   let processed = 0;
@@ -74,10 +86,17 @@ export async function resolveMatchBets(matchId: string, result: 'A' | 'Draw' | '
 
   await resolveAffectedComboBets(matchId);
 
-  return { processed, message: `Successfully processed ${processed} bets` };
+  return {
+    processed,
+    message: `Successfully processed ${processed} bets`,
+    matchId,
+    result,
+  };
 }
 
-async function resolveAffectedComboBets(matchId: string) {
+async function resolveAffectedComboBets(matchId: string): Promise<void> {
+  const supabase = getSupabaseAdminClient();
+
   const { data: comboSelections } = await supabase
     .from('combo_bet_selections')
     .select('combo_bet_id')
@@ -94,7 +113,9 @@ async function resolveAffectedComboBets(matchId: string) {
   }
 }
 
-async function evaluateComboBet(comboBetId: string) {
+async function evaluateComboBet(comboBetId: string): Promise<void> {
+  const supabase = getSupabaseAdminClient();
+
   const { data: comboBet } = await supabase
     .from('combo_bets')
     .select('*, profiles!inner(id, tokens, diamonds, won_bets)')
@@ -125,7 +146,6 @@ async function evaluateComboBet(comboBetId: string) {
   }
 
   const allSelectionsWon = selections.every(sel => sel.choice === sel.matches.result);
-
   const betCurrency = comboBet.bet_currency || 'tokens';
 
   if (allSelectionsWon) {
@@ -173,7 +193,9 @@ async function evaluateComboBet(comboBetId: string) {
   }
 }
 
-export async function simulateMatchResult(matchId: string) {
+export async function simulateMatchResult(matchId: string): Promise<BetResolutionResult> {
+  const supabase = getSupabaseAdminClient();
+
   const { data: match } = await supabase
     .from('matches')
     .select('*')
@@ -200,4 +222,39 @@ export async function simulateMatchResult(matchId: string) {
   }
 
   return resolveMatchBets(matchId, result);
+}
+
+export async function processFinishedMatches(): Promise<BetResolutionResult[]> {
+  const supabase = getSupabaseAdminClient();
+
+  const now = new Date().toISOString();
+
+  const { data: finishedMatches } = await supabase
+    .from('matches')
+    .select('*')
+    .eq('status', 'upcoming')
+    .eq('match_mode', 'fictif')
+    .lte('match_date', now);
+
+  if (!finishedMatches || finishedMatches.length === 0) {
+    return [];
+  }
+
+  const results: BetResolutionResult[] = [];
+
+  for (const match of finishedMatches) {
+    try {
+      const result = await simulateMatchResult(match.id);
+      results.push(result);
+    } catch (error) {
+      console.error(`Failed to process match ${match.id}:`, error);
+      results.push({
+        processed: 0,
+        message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        matchId: match.id,
+      });
+    }
+  }
+
+  return results;
 }

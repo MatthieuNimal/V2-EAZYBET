@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { supabase } from '@/lib/supabase-client';
+import { supabaseServer } from '@/lib/supabase/server';
 import { requireAuth, createErrorResponse, createSuccessResponse } from '@/lib/auth-utils';
 
 function calculateDiamonds(amount: number, odds: number): number {
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get match details
-    const { data: match, error: matchError } = await supabase
+    const { data: match, error: matchError } = await supabaseServer
       .from('matches')
       .select('*')
       .eq('id', match_id)
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user profile
-    const { data: profile, error: profileError } = await supabase
+    const { data: profile, error: profileError } = await supabaseServer
       .from('profiles')
       .select('tokens, diamonds, total_bets')
       .eq('id', user!.id)
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
       updateData.diamonds = profile.diamonds - amount;
     }
 
-    const { error: deductError } = await supabase
+    const { error: deductError } = await supabaseServer
       .from('profiles')
       .update(updateData)
       .eq('id', user!.id);
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create bet
-    const { data: bet, error: betError } = await supabase
+    const { data: bet, error: betError } = await supabaseServer
       .from('bets')
       .insert({
         user_id: user!.id,
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
       } else {
         rollbackData.diamonds = profile.diamonds;
       }
-      await supabase
+      await supabaseServer
         .from('profiles')
         .update(rollbackData)
         .eq('id', user!.id);
@@ -160,7 +160,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status'); // active or history
 
-    let query = supabase
+    let query = supabaseServer
       .from('bets')
       .select(`
         *,
