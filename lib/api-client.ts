@@ -415,45 +415,51 @@ export async function earnTokens(taps: number = 1) {
   console.log('[earnTokens] ========== START ==========');
   console.log('[earnTokens] Called with taps:', taps);
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  console.log('[earnTokens] Auth check:', { hasUser: !!user, userId: user?.id, authError });
+  const { data: { session } } = await supabase.auth.getSession();
 
-  if (!user) {
-    console.error('[earnTokens] No user found!');
+  if (!session?.access_token) {
+    console.error('[earnTokens] No session found!');
     throw new Error('Non authentifié');
   }
 
-  const tokensEarned = taps * 1;
+  const tokensEarned = Math.min(taps * 1, 100);
 
   console.log('[earnTokens] Tokens to earn:', tokensEarned);
 
-  console.log('[earnTokens] Calling increment_tokens RPC...');
-  const { data: newBalance, error: updateError } = await supabase
-    .rpc('increment_tokens', {
-      p_user_id: user.id,
-      p_amount: tokensEarned
-    });
+  const response = await fetch('/api/user/add-tokens', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({ amount: tokensEarned }),
+  });
 
-  console.log('[earnTokens] RPC result:', { newBalance, updateError });
-
-  if (updateError) {
-    console.error('[earnTokens] RPC error details:', JSON.stringify(updateError));
-    throw new Error('Erreur lors de la mise à jour des jetons: ' + updateError.message);
+  if (!response.ok) {
+    const error = await response.json();
+    console.error('[earnTokens] API error:', error);
+    throw new Error(error.error || 'Erreur lors de l\'ajout des jetons');
   }
+
+  const data = await response.json();
+  console.log('[earnTokens] API response:', data);
 
   console.log('[earnTokens] Inserting tap record...');
   const { error: insertError } = await supabase
     .from('tap_earnings')
     .insert({
-      user_id: user.id,
+      user_id: session.user.id,
       tokens_earned: tokensEarned,
     });
 
-  console.log('[earnTokens] Insert result:', { insertError });
+  if (insertError) {
+    console.warn('[earnTokens] Insert error (non-critical):', insertError);
+  }
 
   const result = {
     tokens_earned: tokensEarned,
-    new_balance: newBalance,
+    new_balance: data.data.tokens,
+    diamonds: data.data.diamonds,
     remaining_taps: null,
   };
 
